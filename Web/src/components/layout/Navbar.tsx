@@ -27,15 +27,15 @@ export const Navbar: React.FC = () => {
           to="/"
           onClick={closeMobileMenu}
           className="flex items-center gap-2 sm:gap-3 py-1 group transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer select-none"
-          title="Ir a la página principal de Subastas Ya"
+          title="Ir a la página principal de Subasta Ya"
         >
           <img
             src="/logo.png"
-            alt="Logo Subastas Ya"
+            alt="Logo Subasta Ya"
             className="h-10 sm:h-13 w-auto object-contain drop-shadow-sm shrink-0"
           />
           <span className="font-serif font-bold text-xl sm:text-2xl md:text-3xl text-white tracking-tight">
-            Subastas Ya
+            Subasta Ya
           </span>
         </Link>
 
