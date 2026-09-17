@@ -114,19 +114,27 @@ export const Layout: React.FC = () => {
 
               {/* Menú Desplegable Deslizante */}
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                   {isAuthenticated && user ? (
                     <>
-                      <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/60 rounded-t-xl">
-                        <p className="text-xs font-bold text-slate-800 truncate">
-                          {user.nombre || 'Mi Perfil'}
-                        </p>
-                        <p className="text-[11px] text-slate-500 truncate">
-                          {user.email}
-                        </p>
+                      {/* Cabecera con imagen de fondo translúcida exclusiva para datos de usuario */}
+                      <div className="relative px-4 py-3 border-b border-slate-200/80 bg-slate-50/80 overflow-hidden">
+                        <div
+                          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 pointer-events-none"
+                          style={{ backgroundImage: "url('/user_menu_header_bg.png')" }}
+                          aria-hidden="true"
+                        />
+                        <div className="relative z-10">
+                          <p className="text-xs font-bold text-slate-900 truncate drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]">
+                            {user.nombre || 'Mi Perfil'}
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-700 truncate drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                            {user.email}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="p-1 space-y-0.5">
+                      <div className="p-1.5 space-y-0.5 bg-white">
                         <Link
                           to="/mi-cuenta"
                           onClick={() => setUserMenuOpen(false)}
@@ -150,16 +158,24 @@ export const Layout: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/60 rounded-t-xl">
-                        <p className="text-xs font-bold text-slate-800">
-                          Acceso de Usuarios
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          Identifícate para participar
-                        </p>
+                      {/* Cabecera con imagen de fondo translúcida exclusiva para acceso de usuarios */}
+                      <div className="relative px-4 py-3 border-b border-slate-200/80 bg-slate-50/80 overflow-hidden">
+                        <div
+                          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 pointer-events-none"
+                          style={{ backgroundImage: "url('/user_menu_header_bg.png')" }}
+                          aria-hidden="true"
+                        />
+                        <div className="relative z-10">
+                          <p className="text-xs font-bold text-slate-900 drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]">
+                            Acceso de Usuarios
+                          </p>
+                          <p className="text-[11px] font-medium text-slate-700 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                            Identifícate para participar
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="p-1 space-y-0.5">
+                      <div className="p-1.5 space-y-0.5 bg-white">
                         <Link
                           to="/login"
                           onClick={() => setUserMenuOpen(false)}
