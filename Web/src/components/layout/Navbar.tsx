@@ -47,7 +47,7 @@ export const Navbar: React.FC = () => {
               location.pathname === '/' ? 'text-white font-semibold' : 'text-slate-300 hover:text-white'
             }`}
           >
-            Categorías
+            Subastas
           </Link>
           <Link
             to="/mi-cuenta"
@@ -123,7 +123,7 @@ export const Navbar: React.FC = () => {
               }`}
             >
               <Tag className="w-4 h-4 text-brand-action" />
-              <span>Categorías</span>
+              <span>Subastas</span>
             </Link>
             <Link
               to="/mi-cuenta"

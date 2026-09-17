@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../api/axios';
+import api from '../api/axios';
 import {
   PlusCircle,
   Tag,
@@ -10,9 +10,8 @@ import {
   FileText,
   AlertCircle,
   ArrowLeft,
-  Loader2,
   CheckCircle2,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -198,145 +197,187 @@ export const CreateAuction: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4 font-sans select-none">
-      {/* Botón de volver */}
-      <div className="mb-6">
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 font-sans">
+      {/* Cabecera Principal */}
+      <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-dark font-sans tracking-tight">
+            Publicar Nueva Subasta
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-sans">
+            Define los parámetros de tu artículo, valor y ventana de tiempo
+          </p>
+        </div>
+
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-brand-dark transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-dark hover:bg-slate-50 transition-all font-sans self-stretch sm:self-auto justify-center"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Volver al Catálogo
+          <ArrowLeft className="w-4 h-4 text-slate-500" />
+          <span>Volver al Catálogo</span>
         </Link>
       </div>
 
-      {/* Encabezado */}
-      <div className="bg-brand-navy rounded-2xl p-6 sm:p-8 text-white shadow-md mb-8 border border-slate-800">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-brand-action/20 border border-brand-action/40 flex items-center justify-center text-brand-action">
-            <PlusCircle className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Publicar Nueva Subasta</h1>
-            <p className="text-sm text-slate-300">
-              Define los parámetros de tu artículo, condiciones económicas y ventana temporal.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Alertas Globales de Error / Éxito */}
+      {/* Alertas de Error / Éxito (Mismo estilo que Billetera) */}
       {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-800 text-sm shadow-sm animate-in fade-in duration-200">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-          <div className="flex-1 font-medium">{error}</div>
+        <div
+          role="alert"
+          className="mb-6 p-4 rounded-xl border border-rose-200 bg-rose-50/90 text-rose-900 flex items-start justify-between gap-3 text-sm shadow-sm animate-in fade-in duration-200 font-sans"
+        >
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5 shrink-0" />
+            <p className="font-medium leading-relaxed">{error}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="text-slate-400 hover:text-slate-600 text-xs font-semibold cursor-pointer"
+          >
+            Cerrar
+          </button>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-sm shadow-sm animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <div className="flex-1 font-semibold">{success}</div>
+        <div
+          role="alert"
+          className="mb-6 p-4 rounded-xl border border-emerald-200 bg-emerald-50/90 text-emerald-900 flex items-start justify-between gap-3 text-sm shadow-sm animate-in fade-in duration-200 font-sans"
+        >
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+            <p className="font-medium leading-relaxed">{success}</p>
+          </div>
         </div>
       )}
 
-      {/* Formulario Principal */}
-      <form onSubmit={handleSubmit} className="bg-brand-surface rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-8">
-        
-        {/* SECCIÓN 1: Información del Producto */}
-        <div>
-          <h2 className="text-lg font-bold text-brand-dark border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-brand-action" />
-            Información del Producto
-          </h2>
+      {/* Formulario Principal con tarjetas modulares estilo Billetera */}
+      <form onSubmit={handleSubmit} className="space-y-6 font-sans">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Categoría */}
-            <div className="sm:col-span-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Categoría *
-              </label>
-              <div className="relative">
-                <Tag className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <select
-                  name="categoriaId"
-                  value={formData.categoriaId}
-                  onChange={handleChange}
-                  disabled={isLoadingCategorias || isSubmitting}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none"
-                  required
+        {/* SECCIÓN 1: Información del Producto */}
+        <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm text-brand-action">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+                Información del Producto
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-sans">
+                Describe el artículo, especificaciones técnicas e imagen principal
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5 font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Categoría */}
+              <div>
+                <label
+                  htmlFor="categoriaId"
+                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
                 >
-                  {isLoadingCategorias ? (
-                    <option value="">Cargando categorías...</option>
-                  ) : (
-                    categorias.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.nombre}
-                      </option>
-                    ))
-                  )}
-                </select>
+                  Categoría <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Tag className="w-4 h-4" />
+                  </div>
+                  <select
+                    id="categoriaId"
+                    name="categoriaId"
+                    value={formData.categoriaId}
+                    onChange={handleChange}
+                    disabled={isLoadingCategorias || isSubmitting}
+                    className="w-full pl-10 pr-8 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans cursor-pointer"
+                    required
+                  >
+                    {isLoadingCategorias ? (
+                      <option value="">Cargando categorías...</option>
+                    ) : (
+                      categorias.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.nombre}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              {/* Título del Producto */}
+              <div>
+                <label
+                  htmlFor="titulo"
+                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+                >
+                  Título del Producto <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  id="titulo"
+                  type="text"
+                  name="titulo"
+                  value={formData.titulo}
+                  onChange={handleChange}
+                  placeholder="Ej: iPhone 15 Pro Max 256GB"
+                  disabled={isSubmitting}
+                  maxLength={200}
+                  className="w-full px-3.5 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans"
+                  required
+                />
               </div>
             </div>
 
-            {/* Título */}
-            <div className="sm:col-span-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Título del Producto *
-              </label>
-              <input
-                type="text"
-                name="titulo"
-                value={formData.titulo}
-                onChange={handleChange}
-                placeholder="Ej: iPhone 15 Pro Max 256GB"
-                disabled={isSubmitting}
-                maxLength={200}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none"
-                required
-              />
-            </div>
-
-            {/* Descripción */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Descripción Detallada *
+            {/* Descripción Detallada */}
+            <div>
+              <label
+                htmlFor="descripcion"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                Descripción Detallada <span className="text-rose-500">*</span>
               </label>
               <textarea
+                id="descripcion"
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
                 rows={4}
-                placeholder="Describe el estado del artículo, especificaciones técnicas, garantía e información relevante para los postores."
+                placeholder="Describe el estado del artículo, especificaciones técnicas, accesorios incluidos e información relevante para los postores."
                 disabled={isSubmitting}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none resize-y"
+                className="w-full px-3.5 py-2.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans resize-y min-h-[100px]"
                 required
               />
             </div>
 
-            {/* URL de Imagen */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                URL de la Imagen Principal *
+            {/* URL de la Imagen */}
+            <div>
+              <label
+                htmlFor="urlImagen"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                URL de la Imagen Principal <span className="text-rose-500">*</span>
               </label>
-              <div className="relative mb-3">
-                <ImageIcon className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
                 <input
+                  id="urlImagen"
                   type="url"
                   name="urlImagen"
                   value={formData.urlImagen}
                   onChange={handleChange}
                   placeholder="https://images.unsplash.com/photo-1695048133142-1a20484d2569"
                   disabled={isSubmitting}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans"
                   required
                 />
               </div>
 
-              {/* Preview de Imagen */}
+              {/* Vista previa de imagen si hay URL */}
               {formData.urlImagen && (
-                <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-200 shrink-0 border border-slate-300">
+                <div className="mt-3.5 p-3 rounded-lg bg-slate-50/80 border border-slate-200 flex items-center gap-3.5 font-sans">
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-200 shrink-0 border border-slate-300 flex items-center justify-center">
                     <img
                       src={formData.urlImagen}
                       alt="Vista previa"
@@ -346,9 +387,13 @@ export const CreateAuction: React.FC = () => {
                       }}
                     />
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-700 block mb-0.5">Vista previa de imagen</span>
-                    <span className="text-xs text-slate-500 line-clamp-1 break-all">{formData.urlImagen}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold text-slate-700 block mb-0.5 font-sans">
+                      Vista previa de imagen
+                    </span>
+                    <span className="text-xs text-slate-500 truncate block font-sans">
+                      {formData.urlImagen}
+                    </span>
                   </div>
                 </div>
               )}
@@ -356,113 +401,157 @@ export const CreateAuction: React.FC = () => {
           </div>
         </div>
 
-        {/* SECCIÓN 2: Condiciones Económicas */}
-        <div>
-          <h2 className="text-lg font-bold text-brand-dark border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-brand-action" />
-            Condiciones Económicas
-          </h2>
+        {/* SECCIÓN 2: Valor  */}
+        <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50/80 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm text-emerald-700">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+                Valor
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-sans">
+                Configura el precio base y la escala mínima de puja requerida
+              </p>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-sans">
             {/* Precio Base */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Precio Base de Salida ($ ARS) *
+              <label
+                htmlFor="precioBase"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                Precio Base de Salida ($ ARS) <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <DollarSign className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <DollarSign className="w-4 h-4" />
+                </div>
                 <input
+                  id="precioBase"
                   type="number"
-                  step="0.01"
-                  min="0.01"
+                  step="any"
+                  min="1"
                   name="precioBase"
                   value={formData.precioBase}
                   onChange={handleChange}
                   placeholder="800000"
                   disabled={isSubmitting}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 text-base sm:text-lg font-bold rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans tracking-tight"
                   required
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1.5">Monto mínimo con el que iniciará la subasta.</p>
+              <span className="text-xs text-slate-400 mt-1.5 block font-sans">
+                Monto mínimo con el que iniciará la subasta.
+              </span>
             </div>
 
             {/* Incremento Mínimo */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Incremento Mínimo entre Ofertas ($ ARS) *
+              <label
+                htmlFor="incrementoMinimo"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                Incremento Mínimo entre Ofertas ($ ARS) <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <TrendingUp className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
                 <input
+                  id="incrementoMinimo"
                   type="number"
-                  step="0.01"
-                  min="0.01"
+                  step="any"
+                  min="1"
                   name="incrementoMinimo"
                   value={formData.incrementoMinimo}
                   onChange={handleChange}
                   placeholder="15000"
                   disabled={isSubmitting}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 text-base sm:text-lg font-bold rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans tracking-tight"
                   required
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1.5">Cada nueva oferta debe superar a la anterior al menos por esta suma.</p>
+              <span className="text-xs text-slate-400 mt-1.5 block font-sans">
+                Cada nueva oferta debe superar a la anterior al menos por esta suma.
+              </span>
             </div>
           </div>
         </div>
 
         {/* SECCIÓN 3: Ventana Temporal */}
-        <div>
-          <h2 className="text-lg font-bold text-brand-dark border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-brand-action" />
-            Ventana Temporal de la Subasta
-          </h2>
+        <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm text-brand-action">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+                Ventana tiempo de la Subasta
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-sans">
+                Estipula el momento de apertura y cierre oficial del remate
+              </p>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-sans">
             {/* Fecha de Inicio */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Fecha y Hora de Inicio *
+              <label
+                htmlFor="fechaInicio"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                Fecha y Hora de Inicio <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="datetime-local"
-                  name="fechaInicio"
-                  value={formData.fechaInicio}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none cursor-pointer"
-                  required
-                />
-              </div>
+              <input
+                id="fechaInicio"
+                type="datetime-local"
+                name="fechaInicio"
+                value={formData.fechaInicio}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="w-full px-3.5 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans cursor-pointer"
+                required
+              />
+              <span className="text-xs text-slate-400 mt-1.5 block font-sans">
+                Instante en que se habilitará la recepción de pujas.
+              </span>
             </div>
 
             {/* Fecha de Cierre */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Fecha y Hora de Cierre *
+              <label
+                htmlFor="fechaFin"
+                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+              >
+                Fecha y Hora de Cierre <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="datetime-local"
-                  name="fechaFin"
-                  value={formData.fechaFin}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:bg-white focus:border-brand-action focus:ring-2 focus:ring-brand-action/20 transition-all outline-none cursor-pointer"
-                  required
-                />
-              </div>
+              <input
+                id="fechaFin"
+                type="datetime-local"
+                name="fechaFin"
+                value={formData.fechaFin}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="w-full px-3.5 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans cursor-pointer"
+                required
+              />
+              <span className="text-xs text-slate-400 mt-1.5 block font-sans">
+                Cierre definitivo del remate y adjudicación automática.
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Botón de Enviar */}
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-4">
+        {/* Barra de Acciones y Envío */}
+        <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
           <Link
             to="/"
-            className="px-6 py-3 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 active:scale-[0.99] transition-all font-sans cursor-pointer"
           >
             Cancelar
           </Link>
@@ -470,16 +559,16 @@ export const CreateAuction: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-brand-action hover:bg-brand-action-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-sans"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
                 <span>Publicando Subasta...</span>
               </>
             ) : (
               <>
-                <PlusCircle className="w-5 h-5" />
+                <PlusCircle className="w-4 h-4" />
                 <span>Publicar Subasta</span>
               </>
             )}

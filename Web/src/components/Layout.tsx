@@ -14,7 +14,7 @@ export const Layout: React.FC = () => {
   };
 
   const navLinks = [
-    { label: 'Categorías', path: '/', icon: LayoutGrid },
+    { label: 'Subastas', path: '/', icon: LayoutGrid },
     ...(isAuthenticated
       ? [
           { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
