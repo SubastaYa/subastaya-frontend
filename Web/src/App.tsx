@@ -9,6 +9,7 @@ import { Wallet } from './pages/Wallet';
 import { ProfilePage } from './pages/ProfilePage';
 import { CreateAuction } from './pages/CreateAuction';
 import { MyActivities } from './pages/MyActivities';
+import { AuctionRoom } from './pages/AuctionRoom';
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, token } = useAuth();
@@ -44,6 +45,7 @@ export const App: React.FC = () => {
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/activities" element={<MyActivities />} />
             <Route path="/create-auction" element={<CreateAuction />} />
+            <Route path="/auctions/:id" element={<AuctionRoom />} />
             {/* Ventana de cuenta completa como billetera */}
             <Route path="/mi-cuenta" element={<ProfilePage />} />
           </Route>
