@@ -4,7 +4,7 @@ import { useAuth } from './context/useAuth';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
-import { CatalogPage } from './pages/CatalogPage';
+import { Catalog } from './pages/Catalog';
 import { Wallet } from './pages/Wallet';
 import { ProfilePage } from './pages/ProfilePage';
 import { Activity, PlusCircle } from 'lucide-react';
@@ -64,7 +64,7 @@ export const App: React.FC = () => {
         {/* Estructura con Layout General */}
         <Route element={<Layout />}>
           {/* Ruta Pública: Catálogo accesible para todos (autenticados o anónimos) */}
-          <Route path="/" element={<CatalogPage />} />
+          <Route path="/" element={<Catalog />} />
 
           {/* Rutas Privadas: Protegidas con ProtectedRoute */}
           <Route element={<ProtectedRoute />}>
