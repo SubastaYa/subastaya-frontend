@@ -12,7 +12,9 @@ import {
   Award,
   DollarSign
 } from 'lucide-react';
-import api from '../api/axios';
+import { HubConnectionBuilder, HubConnection, HubConnectionState, LogLevel } from '@microsoft/signalr';
+import api, { TOKEN_STORAGE_KEY } from '../api/axios';
+import { useAuth } from '../context/useAuth';
 
 export interface OfertaResumenDto {
   id: number;
@@ -41,11 +43,24 @@ export interface SubastaDetalleDto {
   postorLiderId?: number | null;
 }
 
+interface ReceiveNewOfferPayload {
+  amount: number;
+  pseudonym: string;
+  timestamp: string;
+  buyerId?: number;
+}
+
+interface TimeExtendedPayload {
+  newEndTime: string;
+}
+
 export const AuctionRoom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { token } = useAuth();
   const [auction, setAuction] = useState<SubastaDetalleDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -87,6 +102,127 @@ export const AuctionRoom: React.FC = () => {
       isMounted = false;
     };
   }, [id]);
+
+  // Conexión en tiempo real con SignalR
+  useEffect(() => {
+    if (!auction?.id) return;
+
+    const auctionId = Number(auction.id);
+    const hubUrl = import.meta.env.VITE_HUB_URL || 'http://localhost:5017/hubs/auction';
+
+    const connection: HubConnection = new HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => token || localStorage.getItem(TOKEN_STORAGE_KEY) || '',
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    let isMounted = true;
+
+    // Manejador del evento ReceiveNewOffer
+    const handleNewOffer = (data: ReceiveNewOfferPayload) => {
+      console.log('SignalR ReceiveNewOffer recibido:', data);
+      setAuction((prev) => {
+        if (!prev) return prev;
+        const nuevaOferta: OfertaResumenDto = {
+          id: Date.now(),
+          monto: data.amount,
+          fechaHora: data.timestamp,
+          fechaOferta: data.timestamp,
+          compradorNombre: data.pseudonym,
+        };
+        return {
+          ...prev,
+          precioActual: data.amount,
+          ultimasOfertas: [nuevaOferta, ...(prev.ultimasOfertas || [])],
+        };
+      });
+    };
+
+    // Manejador del evento TimeExtended
+    const handleTimeExtended = (data: TimeExtendedPayload) => {
+      console.log('SignalR TimeExtended recibido:', data);
+      setAuction((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          fechaFin: data.newEndTime,
+        };
+      });
+    };
+
+    // Suscripción a eventos del servidor
+    connection.on('ReceiveNewOffer', handleNewOffer);
+    connection.on('ReceiveNewBid', handleNewOffer);
+    connection.on('TimeExtended', handleTimeExtended);
+
+    connection.onreconnecting(() => {
+      if (isMounted) setIsConnected(false);
+      console.warn('SignalR: Reconectando al Hub de subastas...');
+    });
+
+    connection.onreconnected(async () => {
+      if (isMounted) {
+        setIsConnected(true);
+        console.log('SignalR connection state: Connected');
+        try {
+          await connection.invoke('JoinAuctionGroup', auctionId);
+        } catch (err) {
+          console.error('Error al unirse nuevamente al grupo tras reconexión:', err);
+        }
+      }
+    });
+
+    connection.onclose(() => {
+      if (isMounted) setIsConnected(false);
+      console.log('SignalR: Conexión cerrada');
+    });
+
+    // Iniciar conexión y unirse al grupo de la subasta
+    connection
+      .start()
+      .then(async () => {
+        if (!isMounted) {
+          await connection.stop();
+          return;
+        }
+        setIsConnected(true);
+        console.log('SignalR connection state: Connected');
+        await connection.invoke('JoinAuctionGroup', auctionId);
+        console.log(`Unido exitosamente al grupo de subasta #${auctionId}`);
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setIsConnected(false);
+          console.error('Error al conectar con SignalR Hub:', err);
+        }
+      });
+
+    // Cleanup: abandonar grupo y detener la conexión
+    return () => {
+      isMounted = false;
+      const leaveAndStop = async () => {
+        try {
+          if (connection.state === HubConnectionState.Connected) {
+            await connection.invoke('LeaveAuctionGroup', auctionId);
+            console.log(`Grupo de subasta #${auctionId} abandonado.`);
+          }
+        } catch (err) {
+          console.error('Error al invocar LeaveAuctionGroup:', err);
+        } finally {
+          try {
+            await connection.stop();
+            console.log('Conexión SignalR detenida.');
+          } catch (err) {
+            console.error('Error al detener conexión SignalR:', err);
+          }
+        }
+      };
+
+      leaveAndStop();
+    };
+  }, [auction?.id, token]);
 
   // Formato monetario ARS
   const formatCurrency = (monto: number) => {
@@ -214,9 +350,25 @@ export const AuctionRoom: React.FC = () => {
           <ArrowLeft className="w-4 h-4" />
           Volver al Catálogo
         </Link>
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          Sala de Subasta #{auction.id}
-        </span>
+        <div className="flex items-center gap-3">
+          {isConnected ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              En vivo
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+              Conectando...
+            </span>
+          )}
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Sala de Subasta #{auction.id}
+          </span>
+        </div>
       </div>
 
       {/* Layout de dos columnas */}
