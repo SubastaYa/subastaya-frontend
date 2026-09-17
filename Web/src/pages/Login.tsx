@@ -265,8 +265,13 @@ export const Login: React.FC = () => {
                   </>
                 ) : (
                   <>
+                    <img
+                      src="/mustache_beige.png?v=4"
+                      alt="Bigote"
+                      className="h-4 w-auto object-contain brightness-0 invert"
+                    />
                     <span>Ingresa a Subastas Ya!</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}
               </button>
