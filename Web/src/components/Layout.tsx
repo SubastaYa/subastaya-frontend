@@ -45,7 +45,7 @@ export const Layout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-brand-bg text-brand-dark select-none">
       {/* Navbar Superior */}
       <header className="bg-brand-navy text-white shadow-sm border-b border-slate-800 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 sm:h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           {/* Marca / Logo */}
           <div className="flex items-center gap-6 lg:gap-8">
             <Link
@@ -117,21 +117,14 @@ export const Layout: React.FC = () => {
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                   {isAuthenticated && user ? (
                     <>
-                      {/* Cabecera con imagen de fondo translúcida exclusiva para datos de usuario */}
-                      <div className="relative px-4 py-3 border-b border-slate-200/80 bg-slate-50/80 overflow-hidden">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 pointer-events-none"
-                          style={{ backgroundImage: "url('/user_menu_header_bg.png')" }}
-                          aria-hidden="true"
-                        />
-                        <div className="relative z-10">
-                          <p className="text-xs font-bold text-slate-900 truncate drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]">
-                            {user.nombre || 'Mi Perfil'}
-                          </p>
-                          <p className="text-[11px] font-medium text-slate-700 truncate drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                            {user.email}
-                          </p>
-                        </div>
+                      {/* Cabecera con fondo verde claro para datos de usuario */}
+                      <div className="px-4 py-3 border-b border-[#C5E8D2] bg-[#E6F4EA]">
+                        <p className="text-xs font-bold text-slate-900 truncate">
+                          {user.nombre || 'Mi Perfil'}
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-700 truncate">
+                          {user.email}
+                        </p>
                       </div>
 
                       <div className="p-1.5 space-y-0.5 bg-white">
@@ -158,21 +151,14 @@ export const Layout: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      {/* Cabecera con imagen de fondo translúcida exclusiva para acceso de usuarios */}
-                      <div className="relative px-4 py-3 border-b border-slate-200/80 bg-slate-50/80 overflow-hidden">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 pointer-events-none"
-                          style={{ backgroundImage: "url('/user_menu_header_bg.png')" }}
-                          aria-hidden="true"
-                        />
-                        <div className="relative z-10">
-                          <p className="text-xs font-bold text-slate-900 drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]">
-                            Acceso de Usuarios
-                          </p>
-                          <p className="text-[11px] font-medium text-slate-700 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                            Identifícate para participar
-                          </p>
-                        </div>
+                      {/* Cabecera con fondo verde claro para acceso de usuarios */}
+                      <div className="px-4 py-3 border-b border-[#C5E8D2] bg-[#E6F4EA]">
+                        <p className="text-xs font-bold text-slate-900">
+                          Acceso de Usuarios
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-700">
+                          Identifícate para participar
+                        </p>
                       </div>
 
                       <div className="p-1.5 space-y-0.5 bg-white">

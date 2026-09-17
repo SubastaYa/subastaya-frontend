@@ -369,7 +369,7 @@ export const CreateAuction: React.FC = () => {
                   name="urlImagen"
                   value={formData.urlImagen}
                   onChange={handleChange}
-                  placeholder="https://images.unsplash.com/photo-1695048133142-1a20484d2569"
+                  placeholder=""
                   disabled={isSubmitting}
                   className="w-full pl-10 pr-4 py-2.5 text-sm sm:text-base font-medium rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans"
                   required
@@ -528,7 +528,7 @@ export const CreateAuction: React.FC = () => {
                 required
               />
               <span className="text-xs text-slate-400 mt-1.5 block font-sans">
-                Instante en que se habilitará la recepción de pujas.
+                Instante en que se habilitará la recepción de ofertas.
               </span>
             </div>
 
@@ -551,7 +551,7 @@ export const CreateAuction: React.FC = () => {
                 required
               />
               <span className="text-xs text-slate-400 mt-1.5 block font-sans">
-                Cierre definitivo del remate y adjudicación automática.
+                Cierre definitivo del subasta y adjudicación automática.
               </span>
             </div>
           </div>
