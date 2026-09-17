@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle2,
   DollarSign,
-  TrendingUp,
   Receipt,
 } from 'lucide-react';
 import axios from 'axios';
@@ -144,24 +143,28 @@ export const Wallet: React.FC = () => {
   const setPresetAmount = (val: number) => {
     setDepositAmount(val.toString());
     setMessage(null);
+    const input = document.getElementById('deposit-amount-input');
+    if (input) {
+      input.focus();
+    }
   };
 
   // Mapear tipos de transacciones para el historial
   const renderTipoTransaccion = (tipo: number | string) => {
     const tipoStr = String(tipo).toLowerCase();
     if (tipo === 0 || tipoStr.includes('deposito') || tipoStr.includes('deposit')) {
-      return { label: 'Depósito Acreditado', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+      return { label: 'Depósito Acreditado' };
     }
     if (tipo === 1 || tipoStr.includes('retencion') || tipoStr.includes('bloqueo')) {
-      return { label: 'Retención de Puja', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+      return { label: 'Retención de Oferta' };
     }
     if (tipo === 2 || tipoStr.includes('liberacion') || tipoStr.includes('reembolso')) {
-      return { label: 'Reembolso por Sobrepuja', color: 'text-blue-700 bg-blue-50 border-blue-200' };
+      return { label: 'Reembolso por Sobreofertar' };
     }
     if (tipo === 3 || tipoStr.includes('pago') || tipoStr.includes('debito')) {
-      return { label: 'Débito por Adjudicación', color: 'text-rose-700 bg-rose-50 border-rose-200' };
+      return { label: 'Débito por Adjudicación' };
     }
-    return { label: 'Movimiento Ledger', color: 'text-slate-700 bg-slate-50 border-slate-200' };
+    return { label: 'Movimiento Ledger' };
   };
 
   return (
@@ -169,24 +172,21 @@ export const Wallet: React.FC = () => {
       {/* Cabecera Principal */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-brand-action shrink-0 shadow-sm">
-            <WalletIcon className="w-6 h-6" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm p-1.5">
+            <img
+              src="/bow_tie.png?v=1"
+              alt="Moño Dorado"
+              className="w-9 sm:w-10 h-auto object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-brand-dark font-sans tracking-tight">
               Mi Billetera
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-sans">
-              Gestión contable de fondos y límites disponibles para subastas
+              Gestión de fondos y límites disponibles para subastas
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Custodia en Tiempo Real
-          </span>
         </div>
       </div>
 
@@ -195,8 +195,8 @@ export const Wallet: React.FC = () => {
         <div
           role="alert"
           className={`mb-6 p-4 rounded-xl border flex items-start justify-between gap-3 text-sm shadow-sm animate-in fade-in duration-200 ${message.type === 'success'
-              ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
-              : 'bg-rose-50/90 border-rose-200 text-rose-900'
+            ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
+            : 'bg-rose-50/90 border-rose-200 text-rose-900'
             }`}
         >
           <div className="flex items-start gap-2.5">
@@ -241,7 +241,7 @@ export const Wallet: React.FC = () => {
         <div className="bg-brand-surface p-5 sm:p-6 rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
             <span>Saldo Retenido</span>
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
+            <div className="p-2 rounded-lg bg-slate-50 text-slate-500 border border-slate-100">
               <History className="w-4 h-4" />
             </div>
           </div>
@@ -277,39 +277,51 @@ export const Wallet: React.FC = () => {
       {/* Formulario de Depósito / Recarga de Fondos */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8 font-sans">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 border border-emerald-100">
-            <TrendingUp className="w-5 h-5" />
+          <div className="group w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0 p-1 shadow-sm cursor-pointer hover:bg-emerald-100/60 transition-all duration-200">
+            <img
+              src="/money_deposit.png"
+              alt="Ingresar Dinero"
+              className="w-full h-full object-contain drop-shadow-sm transition-transform duration-200 ease-out group-hover:scale-110 hover:scale-110"
+            />
           </div>
           <div>
             <h2 className="text-lg font-bold text-brand-dark tracking-tight font-sans">
-              Acreditar Fondos (Simulación de Depósito)
+              Ingresa Dinero
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-sans">
-              Ingresa el monto ficticio que deseas sumar a tu cuenta. Se reflejará inmediatamente en tu saldo disponible.
+              Ingresa el monto. Se reflejará inmediatamente en tu saldo disponible
             </p>
           </div>
         </div>
 
         {/* Atajos de montos rápidos */}
-        <div className="mt-4 mb-5 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-400 mr-1">Montos sugeridos:</span>
-          {[5000, 10000, 50000, 100000].map((val) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => setPresetAmount(val)}
-              className="px-3 py-1 rounded-lg text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
-            >
-              +${val.toLocaleString()}
-            </button>
-          ))}
+        <div className="mt-4 mb-5 flex flex-wrap items-center gap-2 font-sans">
+          <span className="text-xs font-semibold text-slate-500 mr-1 font-sans">Montos sugeridos:</span>
+          {[5000, 10000, 50000, 100000].map((val) => {
+            const isSelected = depositAmount === val.toString();
+            return (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setPresetAmount(val)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold font-sans transition-all duration-150 cursor-pointer shadow-sm active:scale-95 border ${
+                  isSelected
+                    ? 'bg-brand-action text-white border-brand-action shadow-md ring-2 ring-brand-action/20'
+                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 hover:border-slate-400'
+                }`}
+                title={`Autocompletar con $${val.toLocaleString('es-AR')}`}
+              >
+                +${val.toLocaleString('es-AR')}
+              </button>
+            );
+          })}
         </div>
 
-        <form onSubmit={handleDeposit} className="space-y-4">
+        <form onSubmit={handleDeposit} className="space-y-4 font-sans">
           <div>
             <label
               htmlFor="deposit-amount-input"
-              className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2"
+              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
             >
               Monto a Depositar (ARS)
             </label>
@@ -321,13 +333,13 @@ export const Wallet: React.FC = () => {
                 id="deposit-amount-input"
                 type="number"
                 min="1"
-                step="100"
+                step="any"
                 required
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
                 placeholder="10000"
                 disabled={isDepositing}
-                className="w-full pl-10 pr-4 py-2.5 text-base font-semibold rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-lg font-bold rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans tracking-tight"
               />
             </div>
           </div>
@@ -335,7 +347,7 @@ export const Wallet: React.FC = () => {
           <button
             type="submit"
             disabled={isDepositing || !depositAmount || Number(depositAmount) <= 0}
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-sans"
           >
             {isDepositing ? (
               <>
@@ -353,24 +365,31 @@ export const Wallet: React.FC = () => {
       </div>
 
       {/* Historial de Movimientos Contables Ledger (Si hay transacciones) */}
-      <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm overflow-hidden font-sans">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-slate-500" />
-            <h3 className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider">
-              Historial de Movimientos Contables
+      <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm overflow-hidden font-sans selectable-content select-text">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 selectable-content select-text">
+          <div className="flex items-center gap-2.5 selectable-content select-text">
+            <Receipt className="w-4 h-4 text-slate-600" />
+            <h3 className="text-sm sm:text-base font-bold text-slate-800 font-sans tracking-tight">
+              Historial
             </h3>
           </div>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200 font-sans selectable-content select-text">
             {transactions.length} {transactions.length === 1 ? 'registro' : 'registros'}
           </span>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        {/* Encabezado de columnas para alineación prolija */}
+        <div className="hidden sm:grid sm:grid-cols-12 px-6 py-2.5 bg-slate-50/50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider selectable-content select-text">
+          <div className="sm:col-span-6">Movimiento / Concepto</div>
+          <div className="sm:col-span-3 text-center">Fecha y Hora</div>
+          <div className="sm:col-span-3 text-right">Monto</div>
+        </div>
+
+        <div className="divide-y divide-slate-200 selectable-content select-text">
           {isLoadingTransactions ? (
-            <div className="py-8 text-center text-xs text-slate-400">Cargando movimientos...</div>
+            <div className="py-8 text-center text-xs text-slate-400 font-sans">Cargando movimientos...</div>
           ) : transactions.length === 0 ? (
-            <div className="py-8 text-center text-xs sm:text-sm text-slate-400">
+            <div className="py-8 text-center text-xs sm:text-sm text-slate-400 font-sans">
               No registras movimientos contables aún. Acredita fondos para comenzar a operar.
             </div>
           ) : (
@@ -380,23 +399,21 @@ export const Wallet: React.FC = () => {
               return (
                 <div
                   key={t.id}
-                  className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/50 transition-colors"
+                  className="px-6 py-4 grid grid-cols-1 sm:grid-cols-12 items-center gap-2 hover:bg-slate-50/70 transition-colors selectable-content select-text"
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${badge.color}`}
-                    >
+                  <div className="sm:col-span-6 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2.5 selectable-content select-text">
+                    <span className="text-sm font-bold text-slate-900 font-sans tracking-tight">
                       {badge.label}
                     </span>
                     {t.subastaTitulo && (
-                      <span className="text-xs text-slate-600 truncate max-w-[200px] sm:max-w-xs">
-                        Subasta: {t.subastaTitulo}
+                      <span className="text-xs text-slate-500 font-sans">
+                        • Subasta: {t.subastaTitulo}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-4">
-                    <span className="text-xs text-slate-400">
+                  <div className="sm:col-span-3 text-left sm:text-center selectable-content select-text">
+                    <span className="text-xs text-slate-500 font-sans font-medium">
                       {new Date(t.fecha).toLocaleDateString('es-AR', {
                         day: '2-digit',
                         month: '2-digit',
@@ -405,9 +422,13 @@ export const Wallet: React.FC = () => {
                         minute: '2-digit',
                       })}
                     </span>
+                  </div>
+
+                  <div className="sm:col-span-3 text-left sm:text-right selectable-content select-text">
                     <span
-                      className={`text-sm font-bold font-mono ${isPositive ? 'text-emerald-600' : 'text-slate-800'
-                        }`}
+                      className={`text-base font-bold font-sans tracking-tight ${
+                        isPositive ? 'text-emerald-600' : 'text-slate-800'
+                      }`}
                     >
                       {isPositive ? `+${formatCurrency(t.monto)}` : formatCurrency(t.monto)}
                     </span>

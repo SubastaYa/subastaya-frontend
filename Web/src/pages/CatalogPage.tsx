@@ -94,7 +94,7 @@ export const CatalogPage: React.FC = () => {
       return;
     }
 
-    // Si está autenticado, abrir modal de puja
+    // Si está autenticado, abrir modal de oferta
     setSelectedSubasta(item);
     setBidAmount(String(item.precioActual + 1000));
     setFeedback(null);
@@ -228,14 +228,13 @@ export const CatalogPage: React.FC = () => {
 
                   <button
                     onClick={() => handleInitiateBid(item)}
-                    className={`w-full py-2.5 px-4 rounded text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${
-                      isAuthenticated
+                    className={`w-full py-2.5 px-4 rounded text-xs font-semibold flex items-center justify-center gap-2 transition-colors ${isAuthenticated
                         ? 'bg-brand-action hover:bg-brand-action-hover text-white shadow-sm'
                         : 'bg-slate-100 hover:bg-slate-200 text-brand-dark border border-slate-300'
-                    }`}
+                      }`}
                   >
                     <Gavel className="w-4 h-4" />
-                    {isAuthenticated ? 'Realizar Puja' : 'Iniciar sesión para pujar'}
+                    {isAuthenticated ? 'Realizar Oferta' : 'Iniciar sesión para Oferta'}
                   </button>
                 </div>
               </div>
@@ -261,11 +260,10 @@ export const CatalogPage: React.FC = () => {
 
             {feedback && (
               <div
-                className={`mt-4 p-3 rounded-lg text-xs flex items-start gap-2 ${
-                  feedback.type === 'error'
+                className={`mt-4 p-3 rounded-lg text-xs flex items-start gap-2 ${feedback.type === 'error'
                     ? 'bg-slate-900 border border-slate-800 text-slate-100'
                     : 'bg-emerald-950 border border-emerald-800 text-emerald-100'
-                }`}
+                  }`}
               >
                 {feedback.type === 'error' ? (
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
@@ -318,7 +316,7 @@ export const CatalogPage: React.FC = () => {
                   disabled={isBidding}
                   className="flex-1 py-2.5 text-xs font-semibold rounded-lg bg-brand-action hover:bg-brand-action-hover text-white flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-60 transition-colors"
                 >
-                  {isBidding ? 'Enviando...' : 'Confirmar Puja'}
+                  {isBidding ? 'Enviando...' : 'Confirmar Oferta'}
                 </button>
               </div>
             </form>

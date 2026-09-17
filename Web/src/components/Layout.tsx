@@ -14,7 +14,7 @@ export const Layout: React.FC = () => {
   };
 
   const navLinks = [
-    { label: 'Catálogo', path: '/', icon: LayoutGrid },
+    { label: 'Categorías', path: '/', icon: LayoutGrid },
     ...(isAuthenticated
       ? [
           { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
@@ -25,7 +25,7 @@ export const Layout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-brand-bg text-brand-dark">
+    <div className="min-h-screen flex flex-col bg-brand-bg text-brand-dark select-none">
       {/* Navbar Superior */}
       <header className="bg-brand-navy text-white shadow-sm border-b border-slate-800 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 sm:h-20 flex items-center justify-between">
@@ -197,15 +197,33 @@ export const Layout: React.FC = () => {
       </main>
 
       {/* Pie de página sutil */}
-      <footer className="bg-brand-navy text-slate-400 py-6 border-t border-slate-800 text-xs mt-auto">
-        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="text-slate-400">
+      <footer className="bg-brand-navy text-slate-400 py-6 border-t border-slate-800 text-xs mt-auto select-none">
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left select-none">
+          <div className="text-slate-400 select-none">
             © 2026 SubastaYa.
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Privacidad</span>
-            <span>Términos</span>
-            <span>Soporte</span>
+          <div className="flex items-center gap-4 text-slate-400 select-none">
+            <button
+              type="button"
+              onClick={(e) => e.preventDefault()}
+              className="hover:text-slate-200 transition-colors cursor-pointer select-none active:opacity-70 focus:outline-none"
+            >
+              Privacidad
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.preventDefault()}
+              className="hover:text-slate-200 transition-colors cursor-pointer select-none active:opacity-70 focus:outline-none"
+            >
+              Términos
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.preventDefault()}
+              className="hover:text-slate-200 transition-colors cursor-pointer select-none active:opacity-70 focus:outline-none"
+            >
+              Soporte
+            </button>
           </div>
         </div>
       </footer>
