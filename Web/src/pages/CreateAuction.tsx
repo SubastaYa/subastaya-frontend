@@ -5,9 +5,7 @@ import {
   PlusCircle,
   Tag,
   DollarSign,
-  Calendar,
   Image as ImageIcon,
-  FileText,
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
@@ -255,12 +253,16 @@ export const CreateAuction: React.FC = () => {
 
         {/* SECCIÓN 1: Información del Producto */}
         <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm text-brand-action">
-              <FileText className="w-5 h-5" />
+          <div className="group flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100 cursor-pointer select-none">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 p-1.5 shadow-sm transition-all duration-300 group-hover:bg-blue-100/70 group-hover:shadow-md group-hover:border-blue-200 active:scale-95">
+              <img
+                src="/monopoly_car.png"
+                alt="Auto de Producto"
+                className="w-full h-full object-contain drop-shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6 group-hover:-translate-y-1 group-hover:drop-shadow-[0_6px_12px_rgba(30,58,138,0.25)]"
+              />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans transition-colors duration-200 group-hover:text-brand-action">
                 Información del Producto
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-sans">
@@ -403,12 +405,16 @@ export const CreateAuction: React.FC = () => {
 
         {/* SECCIÓN 2: Valor  */}
         <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50/80 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm text-emerald-700">
-              <DollarSign className="w-5 h-5" />
+          <div className="group flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100 cursor-pointer select-none">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0 p-1.5 shadow-sm transition-all duration-300 group-hover:bg-emerald-100/70 group-hover:shadow-md group-hover:border-emerald-200 active:scale-95">
+              <img
+                src="/monopoly_money.png"
+                alt="Billetes Monopoly"
+                className="w-full h-full object-contain drop-shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6 group-hover:-translate-y-1 group-hover:drop-shadow-[0_6px_12px_rgba(16,185,129,0.25)]"
+              />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans transition-colors duration-200 group-hover:text-emerald-700">
                 Valor
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-sans">
@@ -484,12 +490,16 @@ export const CreateAuction: React.FC = () => {
 
         {/* SECCIÓN 3: Ventana Temporal */}
         <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 font-sans">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm text-brand-action">
-              <Calendar className="w-5 h-5" />
+          <div className="group flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100 cursor-pointer select-none">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50/70 border border-amber-200/70 flex items-center justify-center shrink-0 p-1.5 shadow-sm transition-all duration-300 group-hover:bg-amber-100/70 group-hover:shadow-md group-hover:border-amber-300 active:scale-95">
+              <img
+                src="/pocket_watch.png"
+                alt="Reloj de Bolsillo"
+                className="w-full h-full object-contain drop-shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6 group-hover:-translate-y-1 group-hover:drop-shadow-[0_6px_12px_rgba(217,119,6,0.25)]"
+              />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans">
+              <h2 className="text-base sm:text-lg font-bold text-brand-dark tracking-tight font-sans transition-colors duration-200 group-hover:text-amber-700">
                 Ventana tiempo de la Subasta
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-sans">
