@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { LayoutGrid, Wallet, Activity, PlusCircle, LogOut, User, Menu, X } from 'lucide-react';
+import { LayoutGrid, Wallet, Activity, PlusCircle, LogOut, LogIn, Menu, X } from 'lucide-react';
 
 export const Layout: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
@@ -16,9 +15,13 @@ export const Layout: React.FC = () => {
 
   const navLinks = [
     { label: 'Catálogo', path: '/', icon: LayoutGrid },
-    { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
-    { label: 'Mis Actividades', path: '/activities', icon: Activity },
-    { label: 'Publicar Subasta', path: '/create-auction', icon: PlusCircle },
+    ...(isAuthenticated
+      ? [
+          { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
+          { label: 'Mis Actividades', path: '/activities', icon: Activity },
+          { label: 'Publicar Subasta', path: '/create-auction', icon: PlusCircle },
+        ]
+      : []),
   ];
 
   return (
@@ -30,21 +33,20 @@ export const Layout: React.FC = () => {
           <div className="flex items-center gap-6 lg:gap-8">
             <Link
               to="/"
-              className="flex items-center gap-2 group transition-transform duration-150 hover:scale-102 select-none"
-              title="Ir al inicio de SubastaYa"
+              className="group flex items-center gap-2.5 sm:gap-3 py-1 cursor-pointer select-none transition-all duration-200 active:scale-95"
+              title="Ir al inicio de Subasta Ya"
               onClick={() => setMobileMenuOpen(false)}
             >
               <img
                 src="/logo.png"
-                alt="Logo SubastaYa"
-                className="h-8 sm:h-10 w-auto object-contain shrink-0"
+                alt="Logo Subasta Ya"
+                className="h-[46px] sm:h-[56px] w-auto object-contain shrink-0 transition-all duration-300 ease-out group-hover:scale-110 group-hover:-rotate-6 group-hover:-translate-y-1 group-hover:drop-shadow-[0_4px_12px_rgba(255,255,255,0.2)]"
                 onError={(e) => {
-                  // Si no carga la imagen, ocultamos el img silenciosamente
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
-              <span className="font-bold text-xl sm:text-2xl text-white tracking-tight">
-                SubastaYa
+              <span className="font-bold text-xl sm:text-2xl text-white tracking-tight transition-all duration-300 ease-out group-hover:translate-x-1 group-hover:text-[#F5E6D3]">
+                Subasta Ya
               </span>
             </Link>
 
@@ -56,7 +58,7 @@ export const Layout: React.FC = () => {
                   to={link.path}
                   end={link.path === '/'}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    `inline-flex items-center justify-center gap-2 h-10 px-3.5 rounded-lg text-sm font-medium transition-all box-border ${
                       isActive
                         ? 'bg-brand-action text-white shadow-sm'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -72,27 +74,44 @@ export const Layout: React.FC = () => {
 
           {/* Acciones de Usuario (Escritorio) */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Identificador visual del usuario logueado con badge de estado */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="font-mono text-slate-200 max-w-[180px] truncate" title={user?.email}>
-                {user?.email || 'Usuario'}
-              </span>
-            </div>
+            {isAuthenticated && user ? (
+              <>
+                {/* Botón Mi Cuenta con Bigote -> Navega a la ventana completa /mi-cuenta */}
+                <Link
+                  to="/mi-cuenta"
+                  title="Ir a Mi Cuenta"
+                  className="group inline-flex items-center justify-center gap-2.5 h-10 px-3.5 rounded-lg bg-[#F5E6D3] hover:bg-[#ebdcc0] border border-[#e5d5be] transition-all duration-200 cursor-pointer select-none active:scale-95 shadow-sm text-sm box-border"
+                >
+                  <img
+                    src="/mustache_beige.png?v=4"
+                    alt="Bigote"
+                    className="h-5 w-auto object-contain transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6"
+                  />
+                  <span className="font-sans font-bold text-sm text-[#0B1220] tracking-tight">
+                    Mi Cuenta
+                  </span>
+                </Link>
 
-            {/* Botón Cerrar Sesión */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-900/40 border border-rose-900/40 hover:border-rose-700/60 rounded-lg transition-colors cursor-pointer"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Cerrar Sesión</span>
-            </button>
+                {/* Botón Cerrar Sesión (Mismo tamaño h-10 que Catálogo, fondo blanco, letras azul) */}
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-3.5 text-sm font-semibold text-[#1E3A8A] bg-white hover:bg-slate-100 rounded-lg shadow-sm transition-all duration-150 cursor-pointer border border-white box-border"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4 text-[#1E3A8A]" />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </>
+            ) : (
+              /* Botón Iniciar Sesión (Mismo tamaño h-10 que Catálogo, invertido: fondo azul, letras blancas) */
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center gap-2 h-10 px-3.5 text-sm font-semibold rounded-lg bg-brand-action hover:bg-brand-action-hover text-white shadow-sm transition-all duration-150 cursor-pointer border border-transparent box-border"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Iniciar Sesión</span>
+              </Link>
+            )}
           </div>
 
           {/* Botón de Menú Móvil */}
@@ -133,17 +152,40 @@ export const Layout: React.FC = () => {
             </nav>
 
             <div className="pt-3 border-t border-slate-800 space-y-2">
-              <div className="px-3 py-2 rounded-lg bg-slate-900 text-xs text-slate-300 flex items-center justify-between">
-                <span className="text-slate-400">Sesión:</span>
-                <span className="font-mono text-white truncate max-w-[200px]">{user?.email}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold text-rose-300 bg-rose-950/40 border border-rose-900/60 hover:bg-rose-900/50 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Cerrar Sesión</span>
-              </button>
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    to="/mi-cuenta"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2 rounded-lg bg-[#F5E6D3] text-[#0B1220] text-sm font-bold hover:bg-[#ebdcc0] transition-colors shadow-sm"
+                  >
+                    <img
+                      src="/mustache_beige.png?v=4"
+                      alt="Bigote"
+                      className="h-5 w-auto object-contain"
+                    />
+                    <span>
+                      Mi Cuenta
+                    </span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold text-[#1E3A8A] bg-white hover:bg-slate-100 transition-colors shadow-sm"
+                  >
+                    <LogOut className="w-4 h-4 text-[#1E3A8A]" />
+                    <span>Cerrar Sesión</span>
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold bg-brand-action hover:bg-brand-action-hover text-white shadow transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Iniciar Sesión</span>
+                </Link>
+              )}
             </div>
           </div>
         )}
@@ -158,7 +200,7 @@ export const Layout: React.FC = () => {
       <footer className="bg-brand-navy text-slate-400 py-6 border-t border-slate-800 text-xs mt-auto">
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="text-slate-400">
-            © 2026 SubastaYa. Plataforma de Subastas en Vivo.
+            © 2026 SubastaYa.
           </div>
           <div className="flex items-center gap-4 text-slate-400">
             <span>Privacidad</span>

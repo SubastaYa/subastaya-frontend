@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import api from '../api/axios';
-import { Gavel, Clock, Tag, UserCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Gavel, Clock, Tag, AlertCircle, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
 interface SubastaItem {
@@ -168,13 +168,9 @@ export const CatalogPage: React.FC = () => {
         </div>
 
         {isAuthenticated && user && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-700 w-full sm:w-auto justify-between sm:justify-start">
-            <div className="flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-brand-action shrink-0" />
-              <span>Sesión verificada:</span>
-            </div>
-            <span className="font-mono font-semibold max-w-[170px] truncate">{user.email}</span>
-          </div>
+          <span className="text-lg sm:text-xl font-bold text-brand-action select-none">
+            Hola, {user.nombre || user.email}.
+          </span>
         )}
       </div>
 

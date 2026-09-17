@@ -11,10 +11,12 @@ function getInitialAuth(): { user: User | null; token: string | null } {
     if (storedToken && !isTokenExpired(storedToken)) {
       const payload = parseJwtPayload(storedToken);
       if (payload && payload.sub && payload.email) {
+        const nombreClaim = (payload.unique_name || payload.name || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']) as string | undefined;
         return {
           user: {
             id: String(payload.sub),
             email: String(payload.email),
+            nombre: nombreClaim || String(payload.email).split('@')[0],
           },
           token: storedToken,
         };
@@ -56,12 +58,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [logout]);
 
   const login = async (email: string, password: string): Promise<void> => {
-    const response = await api.post<{ token: string; email: string }>('/auth/login', {
+    const response = await api.post<{ token: string; email: string; id?: number; nombre?: string }>('/auth/login', {
       email,
       password,
     });
 
-    const { token: receivedToken, email: receivedEmail } = response.data;
+    const { token: receivedToken, email: receivedEmail, nombre: receivedNombre } = response.data;
 
     // Guardar token en localStorage
     localStorage.setItem(TOKEN_STORAGE_KEY, receivedToken);
@@ -69,10 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Decodificar claims del token emitido por el backend .NET
     const payload = parseJwtPayload(receivedToken);
     const userId = payload?.sub ? String(payload.sub) : '';
+    const payloadNombre = (payload?.unique_name || payload?.name || payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']) as string | undefined;
 
     setUser({
       id: userId,
       email: receivedEmail,
+      nombre: receivedNombre || payloadNombre || receivedEmail.split('@')[0],
     });
     setToken(receivedToken);
   };

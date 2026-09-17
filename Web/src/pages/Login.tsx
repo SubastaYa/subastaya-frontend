@@ -135,35 +135,36 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 sm:p-6 bg-slate-50/60">
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 sm:p-6 bg-slate-50/60 select-none">
       <div className="w-full max-w-md">
         {/* Tarjeta de Autenticación */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-7 sm:p-9 transition-all">
-          {/* Cabecera con solo el logo de la mascota */}
-          <div className="text-center mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-7 sm:p-9 transition-all select-none">
+          {/* Cabecera con solo el bigote relleno de beige sin recuadro */}
+          <div className="text-center mb-6 select-none">
             <Link
               to="/"
-              className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-slate-50/80 border border-slate-200/60 shadow-inner mb-4 p-2 transition-transform duration-200 hover:scale-105"
+              className="inline-block mb-3 transition-transform duration-200 hover:scale-105 select-none"
               title="Volver al inicio"
             >
               <img
-                src="/logo.png"
-                alt="Logo Subastas Ya"
-                className="w-20 h-20 object-contain drop-shadow-sm"
+                src="/mustache_beige.png?v=4"
+                alt="Bigote Subastas Ya"
+                draggable={false}
+                className="h-10 sm:h-12 w-auto object-contain mx-auto select-none"
               />
             </Link>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-serif">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-serif select-none">
               {view === 'login' && 'Iniciar Sesión'}
               {view === 'register' && 'Crear Cuenta'}
               {view === 'reset' && 'Restablecer Acceso'}
             </h1>
             {view === 'register' && (
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1 select-none">
                 Completa tus datos para unirte a Subastas Ya
               </p>
             )}
             {view === 'reset' && (
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1 select-none">
                 Ingresa tu correo para recibir las instrucciones de recuperación
               </p>
             )}
@@ -173,7 +174,7 @@ export const Login: React.FC = () => {
           {errorMessage && (
             <div
               role="alert"
-              className="mb-5 p-3.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 flex items-start gap-2.5 shadow-sm text-xs"
+              className="mb-5 p-3.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 flex items-start gap-2.5 shadow-sm text-xs select-none"
             >
               <AlertCircle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
               <div className="leading-relaxed">{errorMessage}</div>
@@ -183,7 +184,7 @@ export const Login: React.FC = () => {
           {successMessage && (
             <div
               role="alert"
-              className="mb-5 p-3.5 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-100 flex items-start gap-2.5 shadow-sm text-xs"
+              className="mb-5 p-3.5 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-100 flex items-start gap-2.5 shadow-sm text-xs select-none"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
               <div className="leading-relaxed">{successMessage}</div>
@@ -196,7 +197,7 @@ export const Login: React.FC = () => {
               <div>
                 <label
                   htmlFor="login-email"
-                  className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
+                  className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 select-none"
                 >
                   Correo Electrónico
                 </label>
@@ -213,23 +214,23 @@ export const Login: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="usuario@ejemplo.com"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1.5 select-none">
                   <label
                     htmlFor="login-password"
-                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider"
+                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider select-none"
                   >
                     Contraseña
                   </label>
                   <button
                     type="button"
                     onClick={() => switchView('reset')}
-                    className="text-xs font-medium text-brand-action hover:underline cursor-pointer"
+                    className="text-xs font-medium text-brand-action hover:underline cursor-pointer select-none"
                   >
                     ¿Olvidaste tu contraseña o mail?
                   </button>
@@ -247,7 +248,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
@@ -305,7 +306,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setNombre(e.target.value)}
                     placeholder="Juan Pérez"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
@@ -330,7 +331,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="juan@ejemplo.com"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
@@ -354,7 +355,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
@@ -378,7 +379,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repite la contraseña"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>
@@ -437,7 +438,7 @@ export const Login: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="usuario@ejemplo.com"
                     disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
                   />
                 </div>
               </div>

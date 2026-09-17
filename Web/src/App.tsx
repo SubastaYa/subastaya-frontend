@@ -5,7 +5,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { CatalogPage } from './pages/CatalogPage';
-import { AccountPage } from './pages/AccountPage';
+import { Wallet } from './pages/Wallet';
+import { ProfilePage } from './pages/ProfilePage';
 import { Activity, PlusCircle } from 'lucide-react';
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,15 +61,18 @@ export const App: React.FC = () => {
           }
         />
 
-        {/* Rutas Privadas envueltas en ProtectedRoute y dentro de Layout */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/" element={<CatalogPage />} />
-            <Route path="/wallet" element={<AccountPage />} />
+        {/* Estructura con Layout General */}
+        <Route element={<Layout />}>
+          {/* Ruta Pública: Catálogo accesible para todos (autenticados o anónimos) */}
+          <Route path="/" element={<CatalogPage />} />
+
+          {/* Rutas Privadas: Protegidas con ProtectedRoute */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/wallet" element={<Wallet />} />
             <Route path="/activities" element={<ActivitiesPlaceholder />} />
             <Route path="/create-auction" element={<CreateAuctionPlaceholder />} />
-            {/* Compatibilidad con enlace previo a cuenta */}
-            <Route path="/mi-cuenta" element={<Navigate to="/wallet" replace />} />
+            {/* Ventana de cuenta completa como billetera */}
+            <Route path="/mi-cuenta" element={<ProfilePage />} />
           </Route>
         </Route>
 
