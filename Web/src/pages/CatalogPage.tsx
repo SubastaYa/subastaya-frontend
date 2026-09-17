@@ -13,7 +13,7 @@ interface SubastaItem {
   precioActual: number;
   categoriaNombre: string;
   vendedorNombre: string;
-  totalPujas: number;
+  totalOfertas: number;
   fechaFin: string;
 }
 
@@ -27,7 +27,7 @@ const DEMO_ITEMS: SubastaItem[] = [
     precioActual: 45000,
     categoriaNombre: 'Tecnología',
     vendedorNombre: 'Vendedor Test',
-    totalPujas: 2,
+    totalOfertas: 2,
     fechaFin: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
   },
   {
@@ -38,7 +38,7 @@ const DEMO_ITEMS: SubastaItem[] = [
     precioActual: 100000,
     categoriaNombre: 'Tecnología',
     vendedorNombre: 'Vendedor Test',
-    totalPujas: 0,
+    totalOfertas: 0,
     fechaFin: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
   },
   {
@@ -49,7 +49,7 @@ const DEMO_ITEMS: SubastaItem[] = [
     precioActual: 5000000,
     categoriaNombre: 'Vehículos',
     vendedorNombre: 'Vendedor Test',
-    totalPujas: 0,
+    totalOfertas: 0,
     fechaFin: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -119,7 +119,7 @@ export const CatalogPage: React.FC = () => {
     try {
       // POST al backend utilizando JWT mediante Axios
       const response = await api.post<{ id: number; mensaje: string }>(
-        `/subastas/${selectedSubasta.id}/pujas`,
+        `/subastas/${selectedSubasta.id}/ofertas`,
         { amount: amountNum }
       );
 
@@ -132,7 +132,7 @@ export const CatalogPage: React.FC = () => {
       setSubastas((prev) =>
         prev.map((s) =>
           s.id === selectedSubasta.id
-            ? { ...s, precioActual: amountNum, totalPujas: s.totalPujas + 1 }
+            ? { ...s, precioActual: amountNum, totalOfertas: (s.totalOfertas ?? 0) + 1 }
             : s
         )
       );
@@ -212,7 +212,7 @@ export const CatalogPage: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {item.totalPujas} {item.totalPujas === 1 ? 'oferta' : 'ofertas'}
+                      {item.totalOfertas ?? 0} {(item.totalOfertas ?? 0) === 1 ? 'oferta' : 'ofertas'}
                     </span>
                   </div>
                 </div>

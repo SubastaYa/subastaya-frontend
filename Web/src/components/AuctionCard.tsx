@@ -12,7 +12,7 @@ export interface SubastaListDto {
   fechaFin: string;
   categoriaNombre: string;
   vendedorNombre: string;
-  totalPujas: number;
+  totalOfertas: number;
 }
 
 interface AuctionCardProps {
@@ -116,20 +116,20 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
           {/* Oferta Actual Destacada */}
           <div>
             <span className="text-xs font-semibold text-slate-500 block uppercase tracking-wider">
-              {auction.totalPujas > 0 ? 'Oferta actual' : 'Precio base'}
+              {(auction.totalOfertas ?? 0) > 0 ? 'Oferta actual' : 'Precio base'}
             </span>
             <div className="text-2xl font-bold text-brand-action tracking-tight mt-0.5 font-sans">
               {formatCurrency(auction.precioActual || auction.precioBase)}
             </div>
           </div>
 
-          {/* Métricas: Pujas y Fecha de Cierre */}
+          {/* Métricas: Ofertas y Fecha de Cierre */}
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium pt-1">
             <div className="flex items-center gap-1.5" title="Total de ofertas registradas">
               <Gavel className="w-3.5 h-3.5 text-slate-400" />
               <span>
-                {auction.totalPujas}{' '}
-                {auction.totalPujas === 1 ? 'oferta' : 'ofertas'}
+                {auction.totalOfertas ?? 0}{' '}
+                {(auction.totalOfertas ?? 0) === 1 ? 'oferta' : 'ofertas'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-slate-500" title="Fecha límite de cierre">
