@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import api from '../api/axios';
-import { User as UserIcon, Wallet, ArrowUpRight, History } from 'lucide-react';
+import { Wallet, ArrowUpRight, History } from 'lucide-react';
 
 interface WalletData {
   totalBalance?: number;
@@ -42,11 +42,17 @@ export const AccountPage: React.FC = () => {
       {/* Cabecera de la cuenta */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-brand-action shrink-0">
-            <UserIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm p-1.5">
+            <img
+              src="/bow_tie.png?v=1"
+              alt="Moño Dorado"
+              className="w-9 sm:w-10 h-auto object-contain"
+            />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-brand-dark font-sans">Mi Cuenta</h1>
+            <h1 className="text-base sm:text-lg font-bold text-brand-dark font-sans">
+              {user?.nombre || user?.email?.split('@')[0] || 'Usuario'}
+            </h1>
             <p className="text-xs text-slate-500 mt-0.5 break-all font-sans">{user?.email}</p>
           </div>
         </div>

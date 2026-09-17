@@ -11,19 +11,19 @@ export const ProfilePage: React.FC = () => {
       {/* Cabecera de la página */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-[#F5E6D3] border border-[#e5d5be] flex items-center justify-center shrink-0 shadow-sm p-2">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm p-1.5">
             <img
-              src="/mustache_beige.png?v=4"
-              alt="Bigote"
-              className="h-6 w-auto object-contain"
+              src="/bow_tie.png?v=1"
+              alt="Moño Dorado"
+              className="w-9 sm:w-10 h-auto object-contain"
             />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-brand-dark font-sans tracking-tight">
-              Mi Cuenta
+              {user?.nombre || user?.email?.split('@')[0] || 'Usuario'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-sans">
-              Información de tu identidad y sesión activa
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-sans break-all">
+              {user?.email}
             </p>
           </div>
         </div>
