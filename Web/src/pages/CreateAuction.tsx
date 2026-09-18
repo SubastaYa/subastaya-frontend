@@ -167,7 +167,7 @@ export const CreateAuction: React.FC = () => {
 
       await api.post('/auctions', payload);
 
-      setSuccess('¡Subasta creada y publicada con éxito! Redirigiendo al catálogo...');
+      setSuccess('¡Subasta creada y publicada con éxito! Redirigiendo a las subastas...');
 
       setTimeout(() => {
         navigate('/');
@@ -197,7 +197,7 @@ export const CreateAuction: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 font-sans">
       {/* Cabecera Principal */}
-      <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
+      <div className="bg-[#E6F4EA] rounded-xl border border-[#C5E8D2] p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-brand-dark font-sans tracking-tight">
             Publicar Nueva Subasta
@@ -209,10 +209,10 @@ export const CreateAuction: React.FC = () => {
 
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-dark hover:bg-slate-50 transition-all font-sans self-stretch sm:self-auto justify-center"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#C5E8D2] bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 transition-all font-sans self-stretch sm:self-auto justify-center shadow-xs"
         >
           <ArrowLeft className="w-4 h-4 text-slate-500" />
-          <span>Volver al Catálogo</span>
+          <span>Volver a las subastas</span>
         </Link>
       </div>
 
@@ -551,7 +551,7 @@ export const CreateAuction: React.FC = () => {
                 required
               />
               <span className="text-xs text-slate-400 mt-1.5 block font-sans">
-                Cierre definitivo del subasta y adjudicación automática.
+                Cierre definitivo de la subasta y adjudicación automática.
               </span>
             </div>
           </div>

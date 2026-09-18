@@ -37,7 +37,7 @@ export const App: React.FC = () => {
 
         {/* Estructura con Layout General */}
         <Route element={<Layout />}>
-          {/* Ruta Pública: Catálogo accesible para todos (autenticados o anónimos) */}
+          {/* Ruta Pública: Subastas accesibles para todos (autenticados o anónimos) */}
           <Route path="/" element={<Catalog />} />
 
           {/* Rutas Privadas: Protegidas con ProtectedRoute */}

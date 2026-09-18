@@ -461,7 +461,7 @@ export const AuctionRoom: React.FC = () => {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-all shadow-sm active:scale-[0.98]"
           >
             <ArrowLeft className="w-4 h-4" />
-            Volver al Catálogo
+            Volver a las subastas
           </Link>
         </div>
       </div>
@@ -485,7 +485,7 @@ export const AuctionRoom: React.FC = () => {
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-[#1E3A8A] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Volver al Catálogo
+          Volver a las subastas
         </Link>
         <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
           Sala de Subasta #{auction.id}
@@ -822,17 +822,15 @@ export const AuctionRoom: React.FC = () => {
                     return (
                       <div
                         key={oferta.id || index}
-                        className={`py-3 px-3 rounded-xl transition-colors flex items-center justify-between gap-3 ${
-                          esLider ? 'bg-emerald-50/50 border border-emerald-100/80 my-1' : 'hover:bg-slate-50'
-                        }`}
+                        className={`py-3 px-3 rounded-xl transition-colors flex items-center justify-between gap-3 ${esLider ? 'bg-emerald-50/50 border border-emerald-100/80 my-1' : 'hover:bg-slate-50'
+                          }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                              esLider
+                            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${esLider
                                 ? 'bg-emerald-600 text-white shadow-sm'
                                 : 'bg-slate-100 text-slate-600'
-                            }`}
+                              }`}
                           >
                             {esLider ? <Award className="w-4 h-4" /> : <Gavel className="w-4 h-4" />}
                           </div>
@@ -856,9 +854,8 @@ export const AuctionRoom: React.FC = () => {
                         {/* Monto de la oferta */}
                         <div className="text-right shrink-0">
                           <span
-                            className={`text-sm sm:text-base font-bold tracking-tight block ${
-                              esLider ? 'text-emerald-700' : 'text-slate-700'
-                            }`}
+                            className={`text-sm sm:text-base font-bold tracking-tight block ${esLider ? 'text-emerald-700' : 'text-slate-700'
+                              }`}
                           >
                             {formatCurrency(oferta.monto)}
                           </span>

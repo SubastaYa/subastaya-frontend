@@ -96,9 +96,9 @@ export const MyActivities: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 font-sans select-none">
+    <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 font-sans select-none">
       {/* Cabecera Principal (Mismo patrón de diseño de Billetera y Publicar Subasta) */}
-      <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
+      <div className="bg-[#E6F4EA] rounded-xl border border-[#C5E8D2] p-4 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-sans">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-brand-dark font-sans tracking-tight">
             Mis Actividades
@@ -110,10 +110,10 @@ export const MyActivities: React.FC = () => {
 
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-dark hover:bg-slate-50 transition-all font-sans self-stretch sm:self-auto justify-center"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#C5E8D2] bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 transition-all font-sans self-stretch sm:self-auto justify-center shadow-xs"
         >
           <ArrowLeft className="w-4 h-4 text-slate-500" />
-          <span>Volver al Catálogo</span>
+          <span>Volver a las subastas</span>
         </Link>
       </div>
 
@@ -213,7 +213,7 @@ export const MyActivities: React.FC = () => {
 
           <p className="text-xs sm:text-sm text-slate-500 mb-6 font-sans leading-relaxed">
             {activeTab === 'ofertas'
-              ? 'Explora las subastas activas disponibles en el catálogo y puja por los productos que te interesen.'
+              ? 'Explora las subastas activas disponibles y puja por los productos que te interesen.'
               : 'Publica tu primer artículo para comenzar a recibir ofertas de los postores de la plataforma.'}
           </p>
 
