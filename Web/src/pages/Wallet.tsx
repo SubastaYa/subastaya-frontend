@@ -9,8 +9,10 @@ import {
   CheckCircle2,
   DollarSign,
   Receipt,
+  ShieldCheck,
 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/useAuth';
 import { formatLocalDateTime } from '../utils/dateUtils';
 
 interface WalletResponseDto {
@@ -29,6 +31,9 @@ interface TransaccionLedgerDto {
 }
 
 export const Wallet: React.FC = () => {
+  const { user } = useAuth();
+  const isAuditor = Boolean(user?.email?.toLowerCase().includes('auditoria@test.com'));
+
   const [balance, setBalance] = useState<WalletResponseDto>({
     totalBalance: 0,
     retainedBalance: 0,
@@ -94,6 +99,15 @@ export const Wallet: React.FC = () => {
   // Manejar depósito de fondos
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isAuditor) {
+      setMessage({
+        type: 'error',
+        text: 'El perfil de auditoría tiene restringida la carga o depósito de fondos.',
+      });
+      return;
+    }
+
     const amountNum = Number(depositAmount);
 
     if (isNaN(amountNum) || amountNum <= 0) {
@@ -275,92 +289,106 @@ export const Wallet: React.FC = () => {
 
       {/* Formulario de Depósito / Recarga de Fondos */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8 font-sans">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="group w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0 p-1 shadow-sm cursor-pointer hover:bg-emerald-100/60 transition-all duration-200">
-            <img
-              src="/money_deposit.png"
-              alt="Ingresar Dinero"
-              className="w-full h-full object-contain drop-shadow-sm transition-transform duration-200 ease-out group-hover:scale-110 hover:scale-110"
-            />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-brand-dark tracking-tight font-sans">
-              Ingresa Dinero
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 font-sans">
-              Ingresa el monto. Se reflejará inmediatamente en tu saldo disponible
-            </p>
-          </div>
-        </div>
-
-        {/* Atajos de montos rápidos */}
-        <div className="mt-4 mb-5 flex flex-wrap items-center gap-2 font-sans">
-          <span className="text-xs font-semibold text-slate-500 mr-1 font-sans">Montos sugeridos:</span>
-          {[5000, 10000, 50000, 100000].map((val) => {
-            const isSelected = depositAmount === val.toString();
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setPresetAmount(val)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold font-sans transition-all duration-150 cursor-pointer shadow-sm active:scale-95 border ${
-                  isSelected
-                    ? 'bg-brand-action text-white border-brand-action shadow-md ring-2 ring-brand-action/20'
-                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 hover:border-slate-400'
-                }`}
-                title={`Autocompletar con $${val.toLocaleString('es-AR')}`}
-              >
-                +${val.toLocaleString('es-AR')}
-              </button>
-            );
-          })}
-        </div>
-
-        <form onSubmit={handleDeposit} className="space-y-4 font-sans">
-          <div>
-            <label
-              htmlFor="deposit-amount-input"
-              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
-            >
-              Monto a Depositar (ARS)
-            </label>
-            <div className="relative max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <DollarSign className="w-4 h-4" />
-              </div>
-              <input
-                id="deposit-amount-input"
-                type="number"
-                min="1"
-                step="any"
-                required
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder="10000"
-                disabled={isDepositing}
-                className="w-full pl-10 pr-4 py-2.5 text-base sm:text-lg font-bold rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans tracking-tight"
-              />
+        {isAuditor ? (
+          <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 flex items-start gap-3 text-sm shadow-xs">
+            <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold block text-amber-950">Modo Auditoría Activo</span>
+              <span className="text-xs text-amber-800 leading-relaxed">
+                Esta cuenta posee permisos exclusivamente de visualización y control. La carga o depósito de dinero está inhabilitada.
+              </span>
             </div>
           </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="group w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-center shrink-0 p-1 shadow-sm cursor-pointer hover:bg-emerald-100/60 transition-all duration-200">
+                <img
+                  src="/money_deposit.png"
+                  alt="Ingresar Dinero"
+                  className="w-full h-full object-contain drop-shadow-sm transition-transform duration-200 ease-out group-hover:scale-110 hover:scale-110"
+                />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-brand-dark tracking-tight font-sans">
+                  Ingresa Dinero
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 font-sans">
+                  Ingresa el monto. Se reflejará inmediatamente en tu saldo disponible
+                </p>
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={isDepositing || !depositAmount || Number(depositAmount) <= 0}
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-sans"
-          >
-            {isDepositing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
-                <span>Acreditando fondos...</span>
-              </>
-            ) : (
-              <>
-                <PlusCircle className="w-4 h-4" />
-                <span>Acreditar Fondos</span>
-              </>
-            )}
-          </button>
-        </form>
+            {/* Atajos de montos rápidos */}
+            <div className="mt-4 mb-5 flex flex-wrap items-center gap-2 font-sans">
+              <span className="text-xs font-semibold text-slate-500 mr-1 font-sans">Montos sugeridos:</span>
+              {[5000, 10000, 50000, 100000].map((val) => {
+                const isSelected = depositAmount === val.toString();
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setPresetAmount(val)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold font-sans transition-all duration-150 cursor-pointer shadow-sm active:scale-95 border ${
+                      isSelected
+                        ? 'bg-brand-action text-white border-brand-action shadow-md ring-2 ring-brand-action/20'
+                        : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 hover:border-slate-400'
+                    }`}
+                    title={`Autocompletar con $${val.toLocaleString('es-AR')}`}
+                  >
+                    +${val.toLocaleString('es-AR')}
+                  </button>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleDeposit} className="space-y-4 font-sans">
+              <div>
+                <label
+                  htmlFor="deposit-amount-input"
+                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 font-sans"
+                >
+                  Monto a Depositar (ARS)
+                </label>
+                <div className="relative max-w-md">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="deposit-amount-input"
+                    type="number"
+                    min="1"
+                    step="any"
+                    required
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    placeholder="10000"
+                    disabled={isDepositing}
+                    className="w-full pl-10 pr-4 py-2.5 text-base sm:text-lg font-bold rounded-lg bg-white border border-slate-300 text-brand-dark placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 font-sans tracking-tight"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isDepositing || !depositAmount || Number(depositAmount) <= 0}
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-sans"
+              >
+                {isDepositing ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Procesando acreditación...</span>
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Acreditar Saldo Inmediato</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </>
+        )}
       </div>
 
       {/* Historial de Movimientos Contables Ledger (Si hay transacciones) */}

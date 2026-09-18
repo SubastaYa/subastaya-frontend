@@ -11,12 +11,14 @@ function getInitialAuth(): { user: User | null; token: string | null } {
     if (storedToken && !isTokenExpired(storedToken)) {
       const payload = parseJwtPayload(storedToken);
       if (payload && payload.sub && payload.email) {
+        const rawEmail = Array.isArray(payload.email) ? String(payload.email[0]) : String(payload.email);
+        const cleanEmail = rawEmail.includes(',') ? rawEmail.split(',')[0].trim() : rawEmail.trim();
         const nombreClaim = (payload.unique_name || payload.name || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']) as string | undefined;
         return {
           user: {
             id: String(payload.sub),
-            email: String(payload.email),
-            nombre: nombreClaim || String(payload.email).split('@')[0],
+            email: cleanEmail,
+            nombre: nombreClaim || cleanEmail.split('@')[0],
           },
           token: storedToken,
         };
@@ -73,10 +75,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userId = payload?.sub ? String(payload.sub) : '';
     const payloadNombre = (payload?.unique_name || payload?.name || payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']) as string | undefined;
 
+    const cleanEmail = (receivedEmail || '').includes(',')
+      ? receivedEmail.split(',')[0].trim()
+      : (receivedEmail || '').trim();
+
     setUser({
       id: userId,
-      email: receivedEmail,
-      nombre: receivedNombre || payloadNombre || receivedEmail.split('@')[0],
+      email: cleanEmail,
+      nombre: receivedNombre || payloadNombre || cleanEmail.split('@')[0],
     });
     setToken(receivedToken);
   };
