@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Tag, Gavel, ShieldCheck } from 'lucide-react';
 
@@ -22,6 +22,45 @@ interface AuctionCardProps {
 }
 
 export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
+  const [countdown, setCountdown] = useState<string>('');
+  const [isCritical, setIsCritical] = useState<boolean>(false);
+
+  // Contador regresivo en tiempo real para la card del catálogo
+  useEffect(() => {
+    if (!auction.fechaFin) return;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const end = new Date(auction.fechaFin).getTime();
+      const diff = end - now;
+
+      if (diff <= 0 || auction.estado === 2 || auction.estado === 3) {
+        setCountdown('Finalizada');
+        setIsCritical(false);
+        return;
+      }
+
+      setIsCritical(diff <= 60000); // Zona crítica en último minuto
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const pad = (n: number) => n.toString().padStart(2, '0');
+
+      if (days > 0) {
+        setCountdown(`${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+      } else {
+        setCountdown(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [auction.fechaFin, auction.estado]);
+
   // Función para determinar el badge según el estado
   // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada / 3=Desierta (Gris)
   const renderEstadoBadge = () => {
@@ -149,9 +188,16 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
                 {(auction.totalOfertas ?? 0) === 1 ? 'oferta' : 'ofertas'}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-500" title="Fecha límite de cierre">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>{formatFechaFin(auction.fechaFin)}</span>
+            <div
+              className={`flex items-center gap-1.5 font-mono text-xs transition-colors ${
+                isCritical
+                  ? 'text-rose-600 font-extrabold animate-pulse'
+                  : 'text-slate-600 font-semibold'
+              }`}
+              title={`Fecha límite de cierre: ${formatFechaFin(auction.fechaFin)}`}
+            >
+              <Clock className={`w-3.5 h-3.5 ${isCritical ? 'text-rose-600 animate-spin' : 'text-slate-400'}`} />
+              <span>{countdown || formatFechaFin(auction.fechaFin)}</span>
             </div>
           </div>
 

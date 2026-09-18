@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../api/axios';
 import { AuctionCard, type SubastaListDto } from '../components/AuctionCard';
-import { Filter, Layers, AlertCircle, RefreshCw } from 'lucide-react';
+import { Filter, Layers, AlertCircle, RefreshCw, ArrowUpDown, DollarSign, X } from 'lucide-react';
 
 interface CategoriaDto {
   id: number;
@@ -14,6 +14,9 @@ export const Catalog: React.FC = () => {
   const [categories, setCategories] = useState<CategoriaDto[]>([]);
   const [selectedEstado, setSelectedEstado] = useState<string>('Activa');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('');
+  const [selectedOrden, setSelectedOrden] = useState<string>('tiempo_restante');
+  const [precioMin, setPrecioMin] = useState<string>('');
+  const [precioMax, setPrecioMax] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,17 +39,31 @@ export const Catalog: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Contrato Backend: tamanioPagina, estado, categoriaId, orden, precioMin, precioMax
       const params: Record<string, string | number> = {
-        pageSize: 50,
+        tamanioPagina: 50,
       };
 
-      // Si selectedEstado no es vacío ni 'Todas', se agrega el parámetro estado
       if (selectedEstado && selectedEstado !== 'Todas') {
         params.estado = selectedEstado;
       }
 
       if (selectedCategoria) {
         params.categoriaId = Number(selectedCategoria);
+      }
+
+      if (selectedOrden) {
+        params.orden = selectedOrden;
+      }
+
+      const pMin = parseFloat(precioMin);
+      if (!isNaN(pMin) && pMin > 0) {
+        params.precioMin = pMin;
+      }
+
+      const pMax = parseFloat(precioMax);
+      if (!isNaN(pMax) && pMax > 0) {
+        params.precioMax = pMax;
       }
 
       const response = await api.get('/auctions', { params });
@@ -58,7 +75,7 @@ export const Catalog: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEstado, selectedCategoria]);
+  }, [selectedEstado, selectedCategoria, selectedOrden, precioMin, precioMax]);
 
   useEffect(() => {
     fetchAuctions();
@@ -70,6 +87,23 @@ export const Catalog: React.FC = () => {
     { label: 'Próximas', value: 'Programada' },
     { label: 'Finalizadas', value: 'Finalizada' },
   ];
+
+  const ordenFiltros = [
+    { label: 'Menor tiempo restante', value: 'tiempo_restante' },
+    { label: 'Mayor puja / oferta', value: 'mayor_oferta' },
+    { label: 'Menor precio base', value: 'precio_asc' },
+    { label: 'Mayor precio base', value: 'precio_desc' },
+  ];
+
+  const hasActiveCustomFilters = Boolean(precioMin || precioMax || selectedCategoria || selectedOrden !== 'tiempo_restante');
+
+  const handleResetFilters = () => {
+    setSelectedEstado('Todas');
+    setSelectedCategoria('');
+    setSelectedOrden('tiempo_restante');
+    setPrecioMin('');
+    setPrecioMax('');
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl font-sans">
@@ -84,7 +118,8 @@ export const Catalog: React.FC = () => {
       </div>
 
       {/* Barra de Filtros Superior */}
-      <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm mb-8">
+      <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm mb-8 space-y-4">
+        {/* Fila 1: Filtro por Estado y Categoría */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Botones de Filtro por Estado */}
           <div className="flex flex-wrap items-center gap-2">
@@ -132,6 +167,71 @@ export const Catalog: React.FC = () => {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Fila 2: Ordenamiento y Rango de Precios */}
+        <div className="pt-3 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Selector de Ordenamiento */}
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="ordenSelect"
+              className="text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+              Ordenar por:
+            </label>
+            <select
+              id="ordenSelect"
+              value={selectedOrden}
+              onChange={(e) => setSelectedOrden(e.target.value)}
+              className="w-full sm:w-60 px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg text-slate-700 font-medium focus:ring-2 focus:ring-brand-action/20 focus:border-brand-action outline-none shadow-sm transition-all cursor-pointer"
+            >
+              {ordenFiltros.map((orden) => (
+                <option key={orden.value} value={orden.value}>
+                  {orden.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtro Rango de Precios */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1 flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+              Precio:
+            </span>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min="0"
+                placeholder="Mínimo"
+                value={precioMin}
+                onChange={(e) => setPrecioMin(e.target.value)}
+                className="w-24 sm:w-28 px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-700 focus:ring-2 focus:ring-brand-action/20 focus:border-brand-action outline-none"
+              />
+              <span className="text-slate-400 text-xs">—</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="Máximo"
+                value={precioMax}
+                onChange={(e) => setPrecioMax(e.target.value)}
+                className="w-24 sm:w-28 px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-lg text-slate-700 focus:ring-2 focus:ring-brand-action/20 focus:border-brand-action outline-none"
+              />
+            </div>
+
+            {hasActiveCustomFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="ml-2 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                title="Restablecer todos los filtros"
+              >
+                <X className="w-3.5 h-3.5 text-slate-500" />
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
       </div>
