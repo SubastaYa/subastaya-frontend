@@ -225,7 +225,11 @@ export const AuctionRoom: React.FC = () => {
     if (!auction?.id) return;
 
     const auctionId = Number(auction.id);
-    const hubUrl = import.meta.env.VITE_HUB_URL || 'http://localhost:5017/hubs/auction';
+    const hubUrl =
+      import.meta.env.VITE_HUB_URL ||
+      (import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '/hubs/auction')
+        : 'http://localhost:5017/hubs/auction');
 
     const connection: HubConnection = new HubConnectionBuilder()
       .withUrl(hubUrl, {

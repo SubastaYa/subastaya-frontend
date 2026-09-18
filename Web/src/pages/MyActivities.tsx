@@ -45,7 +45,8 @@ export interface MiPublicacionItem {
   categoriaNombre: string;
   totalOfertas: number;
   montoRecaudado: number;
-  ganadorNombre: string | null;
+  ganadorNombre?: string | null;
+  ganadorNombreOfuscado?: string | null;
 }
 
 export const MyActivities: React.FC = () => {
@@ -434,12 +435,14 @@ export const MyActivities: React.FC = () => {
                             {formatCurrency(pub.montoRecaudado)}
                           </strong>
                         </div>
-                        {pub.ganadorNombre && (
+                        {(pub.ganadorNombreOfuscado || pub.ganadorNombre) && (
                           <div className="flex items-center justify-between text-xs text-emerald-700 pt-0.5">
                             <span className="flex items-center gap-1">
                               <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Ganador:
                             </span>
-                            <strong className="font-semibold text-emerald-900">{pub.ganadorNombre}</strong>
+                            <strong className="font-semibold text-emerald-900">
+                              {pub.ganadorNombreOfuscado || pub.ganadorNombre}
+                            </strong>
                           </div>
                         )}
                       </div>

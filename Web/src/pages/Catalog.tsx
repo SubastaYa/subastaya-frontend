@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { AuctionCard, type SubastaListDto } from '../components/AuctionCard';
-import { Filter, Layers, AlertCircle, RefreshCw, ArrowUpDown, DollarSign, X, Loader2 } from 'lucide-react';
+import { Filter, Layers, AlertCircle, RefreshCw, ArrowUpDown, DollarSign, X, Loader2, Search } from 'lucide-react';
 import { auctionService, categoryService } from '../services';
 
 interface CategoriaDto {
@@ -12,6 +12,8 @@ interface CategoriaDto {
 export const Catalog: React.FC = () => {
   const [auctions, setAuctions] = useState<SubastaListDto[]>([]);
   const [categories, setCategories] = useState<CategoriaDto[]>([]);
+  const [busqueda, setBusqueda] = useState<string>('');
+  const [debouncedBusqueda, setDebouncedBusqueda] = useState<string>('');
   const [selectedEstado, setSelectedEstado] = useState<string>('Activa');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('');
   const [selectedOrden, setSelectedOrden] = useState<string>('tiempo_restante');
@@ -37,6 +39,14 @@ export const Catalog: React.FC = () => {
     };
     fetchCategories();
   }, []);
+
+  // Debounce para el campo de búsqueda
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBusqueda(busqueda);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [busqueda]);
 
   // Cargar subastas con filtros dinámicos y paginación progresiva
   const fetchAuctions = useCallback(async (pageToLoad: number = 1, append: boolean = false) => {
@@ -75,6 +85,10 @@ export const Catalog: React.FC = () => {
         params.precioMax = pMax;
       }
 
+      if (debouncedBusqueda.trim()) {
+        params.busqueda = debouncedBusqueda.trim();
+      }
+
       const response = await auctionService.getCatalog(params);
       const data = Array.isArray(response.data) ? response.data : response.data.value || [];
       if (append) {
@@ -92,7 +106,7 @@ export const Catalog: React.FC = () => {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  }, [selectedEstado, selectedCategoria, selectedOrden, precioMin, precioMax]);
+  }, [selectedEstado, selectedCategoria, selectedOrden, precioMin, precioMax, debouncedBusqueda]);
 
   useEffect(() => {
     fetchAuctions(1, false);
@@ -112,9 +126,10 @@ export const Catalog: React.FC = () => {
     { label: 'Mayor precio base', value: 'precio_desc' },
   ];
 
-  const hasActiveCustomFilters = Boolean(precioMin || precioMax || selectedCategoria || selectedOrden !== 'tiempo_restante');
+  const hasActiveCustomFilters = Boolean(busqueda || precioMin || precioMax || selectedCategoria || selectedOrden !== 'tiempo_restante');
 
   const handleResetFilters = () => {
+    setBusqueda('');
     setSelectedEstado('Todas');
     setSelectedCategoria('');
     setSelectedOrden('tiempo_restante');
@@ -141,6 +156,28 @@ export const Catalog: React.FC = () => {
 
       {/* Barra de Filtros Superior */}
       <div className="bg-brand-surface rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm mb-8 space-y-4">
+        {/* Barra de Búsqueda por Texto */}
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por título o descripción..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full pl-10 pr-10 py-2.5 text-sm bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 font-medium focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] outline-none shadow-xs transition-all"
+          />
+          {busqueda && (
+            <button
+              type="button"
+              onClick={() => setBusqueda('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              title="Borrar búsqueda"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
         {/* Fila 1: Filtro por Estado y Categoría */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Botones de Filtro por Estado */}
