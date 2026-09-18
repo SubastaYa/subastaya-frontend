@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Lock, Mail, AlertCircle, ArrowRight, ArrowLeft, User, CheckCircle2, KeyRound } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, ArrowLeft, User, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import api from '../api/axios';
 
-type LoginView = 'login' | 'register' | 'reset';
+type LoginView = 'login' | 'register';
 
 export const Login: React.FC = () => {
   const [view, setView] = useState<LoginView>('login');
@@ -119,30 +119,6 @@ export const Login: React.FC = () => {
     }
   };
 
-  // Manejador de Restablecer Contraseña / Mail
-  const handleResetSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    if (!email.trim()) {
-      setErrorMessage('Por favor ingrese su correo electrónico.');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setSuccessMessage(`Se enviaron las instrucciones de restablecimiento al correo ${email.trim()}.`);
-      setView('login');
-    } catch {
-      setErrorMessage('No fue posible procesar la solicitud de restablecimiento.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const switchView = (newView: LoginView) => {
     setView(newView);
     setErrorMessage(null);
@@ -169,18 +145,11 @@ export const Login: React.FC = () => {
               />
             </Link>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-serif select-none">
-              {view === 'login' && 'Iniciar Sesión'}
-              {view === 'register' && 'Crear Cuenta'}
-              {view === 'reset' && 'Restablecer Acceso'}
+              {view === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h1>
             {view === 'register' && (
               <p className="text-xs text-slate-500 mt-1 select-none">
                 Completa tus datos para unirte a Subastas Ya
-              </p>
-            )}
-            {view === 'reset' && (
-              <p className="text-xs text-slate-500 mt-1 select-none">
-                Ingresa tu correo para recibir las instrucciones de recuperación
               </p>
             )}
           </div>
@@ -235,21 +204,12 @@ export const Login: React.FC = () => {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5 select-none">
-                  <label
-                    htmlFor="login-password"
-                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider select-none"
-                  >
-                    Contraseña
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => switchView('reset')}
-                    className="text-xs font-medium text-brand-action hover:underline cursor-pointer select-none"
-                  >
-                    ¿Olvidaste tu contraseña o mail?
-                  </button>
-                </div>
+                <label
+                  htmlFor="login-password"
+                  className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 select-none"
+                >
+                  Contraseña
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Lock className="w-4 h-4" />
@@ -425,65 +385,6 @@ export const Login: React.FC = () => {
                   className="font-semibold text-brand-action hover:underline cursor-pointer ml-1"
                 >
                   Iniciar sesión
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* VISTA: RESTABLECER CONTRASEÑA / MAIL */}
-          {view === 'reset' && (
-            <form onSubmit={handleResetSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="reset-email"
-                  className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
-                >
-                  Correo Electrónico Asociado
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="reset-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="usuario@ejemplo.com"
-                    disabled={isLoading}
-                    className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-action focus:ring-2 focus:ring-brand-action/15 transition-all disabled:bg-slate-50 select-text"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 px-4 rounded-lg font-semibold text-sm text-white bg-brand-action hover:bg-brand-action-hover active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow disabled:opacity-60 cursor-pointer mt-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
-                    <span>Enviando enlace...</span>
-                  </>
-                ) : (
-                  <>
-                    <KeyRound className="w-4 h-4" />
-                    <span>Enviar instrucciones de recuperación</span>
-                  </>
-                )}
-              </button>
-
-              <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-600">
-                <button
-                  type="button"
-                  onClick={() => switchView('login')}
-                  className="inline-flex items-center gap-1 font-semibold text-brand-action hover:underline cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Volver a iniciar sesión</span>
                 </button>
               </div>
             </form>
