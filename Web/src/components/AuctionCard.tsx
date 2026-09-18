@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Tag, Gavel, ShieldCheck } from 'lucide-react';
+import { formatLocalDateTime } from '../utils/dateUtils';
 
 export interface SubastaListDto {
   id: number;
@@ -50,18 +51,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   };
 
   const formatFechaFin = (fechaIso: string) => {
-    try {
-      const fecha = new Date(fechaIso);
-      return fecha.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return fechaIso;
-    }
+    return formatLocalDateTime(fechaIso);
   };
 
   const formatCurrency = (monto: number) => {
