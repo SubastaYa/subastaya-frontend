@@ -780,25 +780,40 @@ export const AuctionRoom: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ================= COLUMNA IZQUIERDA: PRODUCTO Y FICHA TÉCNICA ================= */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Imagen Principal del Producto */}
-          <div className="relative w-full h-80 sm:h-96 bg-slate-600 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          {/* Imagen Principal del Producto con Capa de Opacidad */}
+          <div className="relative w-full h-80 sm:h-96 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
             <img
-              src={
-                auction.estado === 2 || auction.estado === 3 || isFinalized
-                  ? '/images/subasta-finalizada.svg'
-                  : (auction.urlImagen || '/images/default-subasta.jpg')
-              }
+              src={auction.urlImagen || '/images/default-subasta.jpg'}
               alt={auction.titulo}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  auction.estado === 2 || auction.estado === 3 || isFinalized
-                    ? '/images/subasta-finalizada.svg'
-                    : '/images/default-subasta.jpg';
+                (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
               }}
             />
+
+            {/* Capa con opacidad que permite ver la imagen de fondo: naranja para desiertas, roja para finalizadas */}
+            {auction.estado === 3 ? (
+              <div className="absolute inset-0 bg-orange-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-4 z-10 select-none">
+                <span className="text-xl sm:text-2xl font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                  Subasta Desierta
+                </span>
+                <span className="text-xs sm:text-sm text-white/95 font-medium drop-shadow-xs mt-1">
+                  El período de subasta concluyó sin ofertas registradas
+                </span>
+              </div>
+            ) : (auction.estado === 2 || isFinalized) ? (
+              <div className="absolute inset-0 bg-rose-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-4 z-10 select-none">
+                <span className="text-xl sm:text-2xl font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                  Subasta Finalizada
+                </span>
+                <span className="text-xs sm:text-sm text-white/95 font-medium drop-shadow-xs mt-1">
+                  El período de pujas ha finalizado. No se admiten nuevas ofertas.
+                </span>
+              </div>
+            ) : null}
+
             {/* Categoría flotante sobre la imagen */}
-            <div className="absolute top-4 left-4">
+            <div className="absolute top-4 left-4 z-20">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-slate-700 shadow-md backdrop-blur-sm border border-slate-200">
                 <Tag className="w-3.5 h-3.5 text-[#1E3A8A]" />
                 {auction.categoriaNombre || 'General'}

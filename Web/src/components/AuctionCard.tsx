@@ -66,11 +66,11 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   const isDesierta = auction.estado === 3 || (isFinalizada && (auction.totalOfertas ?? 0) === 0);
 
   // Función para determinar el badge según el estado
-  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada (Rojo), 3=Desierta (Naranja oscuro/marrón)
+  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada (Rojo), 3=Desierta (Naranja)
   const renderEstadoBadge = () => {
     if (isDesierta) {
       return (
-        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-800 text-white shadow-sm">
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-orange-600 text-white shadow-sm">
           Desierta
         </span>
       );
@@ -121,17 +121,39 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
 
   return (
     <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 overflow-hidden flex flex-col justify-between group font-sans">
-      {/* Imagen Superior con Badge de Estado */}
-      <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
+      {/* Imagen Superior con Badge de Estado y Capa con Opacidad */}
+      <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
         <img
-          src={isFinalizada ? '/images/subasta-finalizada.svg' : (auction.urlImagen || '/images/default-subasta.jpg')}
+          src={auction.urlImagen || '/images/default-subasta.jpg'}
           alt={auction.titulo}
           className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = isFinalizada ? '/images/subasta-finalizada.svg' : '/images/default-subasta.jpg';
+            (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
           }}
         />
-        <div className="absolute top-3 right-3">
+
+        {/* Capa con opacidad que permite ver la imagen de fondo: naranja para desiertas, roja para finalizadas */}
+        {isDesierta ? (
+          <div className="absolute inset-0 bg-orange-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+            <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+              Subasta Desierta
+            </span>
+            <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+              Sin ofertas registradas
+            </span>
+          </div>
+        ) : isFinalizada ? (
+          <div className="absolute inset-0 bg-rose-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+            <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+              Subasta Finalizada
+            </span>
+            <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+              No se admiten nuevas ofertas
+            </span>
+          </div>
+        ) : null}
+
+        <div className="absolute top-3 right-3 z-20">
           {renderEstadoBadge()}
         </div>
       </div>
