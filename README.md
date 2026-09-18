@@ -130,9 +130,11 @@ subastaya-frontend/
   * Rechazos de pujas por saldo insuficiente o intento de auto-oferta del vendedor.
   * Historial de auditoría con filtrado por entidad, acción y rango temporal.
 
-### 7. Inicio de Sesión Rápido (`Login.tsx`)
-* Autenticación basada en tokens JWT.
-* Botonera de acceso rápido con **un solo clic** a las cuentas de prueba precargadas (Vendedor, Comprador 1, Comprador 2, Sin fondos) para acelerar las demostraciones y correcciones docentes.
+### 7. Inicio de Sesión y Acceso Rápido (`Login.tsx`)
+* Autenticación basada en tokens JWT con persistencia de sesión segura.
+* **Botonera de acceso rápido (1 clic)**: Permite seleccionar instantáneamente cualquiera de las cuentas de prueba precargadas (Vendedor, Comprador 1, Comprador 2, Sin fondos) completando email y contraseña de forma automática para facilitar demostraciones y evaluaciones docentes.
+* Conmutación ágil entre vista de inicio de sesión y registro de nuevas cuentas de usuario.
+* Validación en tiempo real de credenciales y redirección automática al destino previo tras autenticarse.
 
 ---
 
@@ -203,7 +205,7 @@ Para probar todos los flujos de la aplicación de forma inmediata sin necesidad 
 | **Comprador 2** | `comprador2@test.com` | `123456` | Comprador habilitado ($200.000 de saldo). Ideal para simular competencia de pujas. |
 | **Sin Fondos** | `sinfondos@test.com` | `123456` | Comprador con solo $500. Permite comprobar alertas de saldo insuficiente. |
 
-> **Tip**: En la pantalla de [Inicio de Sesión](http://localhost:5173/login), puedes hacer clic directamente en cualquiera de las tarjetas de usuarios de prueba para autocompletar las credenciales al instante.
+> **Tip**: En la pantalla de [Inicio de Sesión](http://localhost:5173/login), puedes hacer clic directamente en cualquiera de los botones de acceso rápido para autocompletar las credenciales al instante.
 
 ---
 

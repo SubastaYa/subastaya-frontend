@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Lock, Mail, AlertCircle, ArrowRight, ArrowLeft, User, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, ArrowLeft, User, CheckCircle2, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import api from '../api/axios';
 
 type LoginView = 'login' | 'register';
+
+const TEST_ACCOUNTS = [
+  { label: 'Vendedor', email: 'vendedor@test.com', password: '123456', detail: 'Publicaciones y cobros' },
+  { label: 'Comprador 1', email: 'comprador1@test.com', password: '123456', detail: '$150.000 de saldo' },
+  { label: 'Comprador 2', email: 'comprador2@test.com', password: '123456', detail: '$200.000 de saldo' },
+  { label: 'Sin Fondos', email: 'sinfondos@test.com', password: '123456', detail: 'Saldo insuficiente ($500)' },
+];
 
 export const Login: React.FC = () => {
   const [view, setView] = useState<LoginView>('login');
@@ -246,7 +253,42 @@ export const Login: React.FC = () => {
                 )}
               </button>
 
-              <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-600">
+              {/* Botonera de Cuentas de Prueba para Demostración */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Acceso rápido (Cuentas de prueba):
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {TEST_ACCOUNTS.map((acc) => (
+                    <button
+                      key={acc.email}
+                      type="button"
+                      onClick={() => {
+                        setEmail(acc.email);
+                        setPassword(acc.password);
+                        setErrorMessage(null);
+                      }}
+                      className={`p-2 rounded-lg border text-left transition-all cursor-pointer ${
+                        email === acc.email
+                          ? 'border-brand-action bg-blue-50/80 ring-1 ring-brand-action/30'
+                          : 'border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="block text-xs font-bold text-slate-800">
+                        {acc.label}
+                      </span>
+                      <span className="block text-[10px] text-slate-500 truncate">
+                        {acc.detail}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-600">
                 ¿No tienes una cuenta?{' '}
                 <button
                   type="button"
