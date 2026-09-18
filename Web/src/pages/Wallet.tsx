@@ -11,6 +11,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import axios from 'axios';
+import { formatLocalDateTime } from '../utils/dateUtils';
 
 interface WalletResponseDto {
   totalBalance: number;
@@ -412,13 +413,7 @@ export const Wallet: React.FC = () => {
 
                   <div className="sm:col-span-3 text-left sm:text-center selectable-content select-text">
                     <span className="text-xs text-slate-500 font-sans font-medium">
-                      {new Date(t.fecha).toLocaleDateString('es-AR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatLocalDateTime(t.fecha)}
                     </span>
                   </div>
 

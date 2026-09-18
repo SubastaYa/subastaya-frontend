@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import axios from 'axios';
+import { parseLocalInputDate, toLocalDatetimeInputString } from '../utils/dateUtils';
 
 interface Categoria {
   id: number;
@@ -26,21 +27,15 @@ export const CreateAuction: React.FC = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [isLoadingCategorias, setIsLoadingCategorias] = useState(true);
 
-  // Helper para formatear fechas a YYYY-MM-DDTHH:mm para inputs de tipo datetime-local
+  // Helper para inicializar fechas en hora local: inicio ahora, fin sugerido en 7 días
   const getInitialDates = () => {
     const now = new Date();
-    now.setMinutes(now.getMinutes() + 5); // Inicio en 5 mins
     const fin = new Date();
-    fin.setDate(fin.getDate() + 7); // Cierre en 7 días
-
-    const toLocalISO = (d: Date) => {
-      const tzOffset = d.getTimezoneOffset() * 60000;
-      return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
-    };
+    fin.setDate(fin.getDate() + 7); // Cierre sugerido por defecto en 7 días
 
     return {
-      inicio: toLocalISO(now),
-      fin: toLocalISO(fin),
+      inicio: toLocalDatetimeInputString(now),
+      fin: toLocalDatetimeInputString(fin),
     };
   };
 
@@ -99,8 +94,9 @@ export const CreateAuction: React.FC = () => {
     const categoriaIdNum = Number(formData.categoriaId);
     const precioBaseNum = parseFloat(formData.precioBase);
     const incrementoMinimoNum = parseFloat(formData.incrementoMinimo);
-    const inicioDate = new Date(formData.fechaInicio);
-    const finDate = new Date(formData.fechaFin);
+    const inicioDate = parseLocalInputDate(formData.fechaInicio);
+    const finDate = parseLocalInputDate(formData.fechaFin);
+    const now = new Date();
 
     if (!categoriaIdNum || categoriaIdNum <= 0) {
       setError('Por favor selecciona una categoría válida.');
@@ -138,13 +134,26 @@ export const CreateAuction: React.FC = () => {
     }
 
     if (finDate <= inicioDate) {
-      setError('La fecha de fin debe ser posterior a la fecha de inicio.');
+      setError('La fecha de cierre debe ser posterior a la fecha de inicio.');
+      return;
+    }
+
+    if (finDate.getTime() <= now.getTime()) {
+      setError('La fecha de cierre debe ser posterior al momento actual.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      // Si la fecha de inicio es inmediata (ahora o dentro del minuto actual),
+      // nos aseguramos de enviar un timestamp menor o igual al momento actual
+      // para que el backend la clasifique directamente como Activa (1).
+      const isImmediate = inicioDate.getTime() <= now.getTime() + 60000;
+      const fechaInicioIso = isImmediate
+        ? new Date(Math.min(inicioDate.getTime(), now.getTime() - 2000)).toISOString()
+        : inicioDate.toISOString();
+
       const payload = {
         categoriaId: categoriaIdNum,
         titulo: formData.titulo.trim(),
@@ -152,17 +161,22 @@ export const CreateAuction: React.FC = () => {
         urlImagen: formData.urlImagen.trim(),
         precioBase: precioBaseNum,
         incrementoMinimo: incrementoMinimoNum,
-        fechaInicio: inicioDate.toISOString(),
+        fechaInicio: fechaInicioIso,
         fechaFin: finDate.toISOString(),
       };
 
-      await auctionService.create(payload);
+      const response = await auctionService.create(payload);
+      const subastaId = response.data?.id;
 
-      setSuccess('¡Subasta creada y publicada con éxito! Redirigiendo a las subastas...');
+      setSuccess('¡Subasta creada y publicada con éxito! Redirigiendo a la sala de subasta...');
 
       setTimeout(() => {
-        navigate('/');
-      }, 1500);
+        if (subastaId) {
+          navigate(`/auctions/${subastaId}`);
+        } else {
+          navigate('/');
+        }
+      }, 1200);
     } catch (err: unknown) {
       setIsSubmitting(false);
       if (axios.isAxiosError(err) && err.response) {
@@ -519,7 +533,7 @@ export const CreateAuction: React.FC = () => {
                 required
               />
               <span className="text-xs text-slate-400 mt-1.5 block font-sans">
-                Instante en que se habilitará la recepción de ofertas.
+                Instante en que se habilitará la recepción de ofertas (inicia de inmediato por defecto).
               </span>
             </div>
 

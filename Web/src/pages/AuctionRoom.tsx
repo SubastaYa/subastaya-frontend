@@ -29,6 +29,7 @@ import axios from 'axios';
 import { TOKEN_STORAGE_KEY } from '../api/axios';
 import { auctionService } from '../services';
 import { useAuth } from '../context/useAuth';
+import { parseApiDate, formatLocalDateTimeWithSeconds } from '../utils/dateUtils';
 
 export interface OfertaResumenDto {
   id: number;
@@ -110,7 +111,7 @@ export const AuctionRoom: React.FC = () => {
 
     const actualizarContador = () => {
       const ahora = Date.now();
-      const fin = new Date(auction.fechaFin).getTime();
+      const fin = parseApiDate(auction.fechaFin).getTime();
       const diferencia = fin - ahora;
 
       if (diferencia <= 0) {
@@ -477,22 +478,9 @@ export const AuctionRoom: React.FC = () => {
     }
   };
 
-  // Formato de fecha y hora local
+  // Formato de fecha y hora local robusto
   const formatDateTime = (fechaIso?: string) => {
-    if (!fechaIso) return '-';
-    try {
-      const fecha = new Date(fechaIso);
-      return fecha.toLocaleString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-    } catch {
-      return fechaIso;
-    }
+    return formatLocalDateTimeWithSeconds(fechaIso);
   };
 
   // Badge según el estado de la subasta
