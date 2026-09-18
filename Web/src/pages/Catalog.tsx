@@ -117,6 +117,7 @@ export const Catalog: React.FC = () => {
     { label: 'Activas', value: 'Activa' },
     { label: 'Próximas', value: 'Programada' },
     { label: 'Finalizadas', value: 'Finalizada' },
+    { label: 'Desiertas', value: 'Desierta' },
   ];
 
   const ordenFiltros = [

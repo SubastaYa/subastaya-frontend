@@ -63,10 +63,19 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   }, [auction.fechaFin, auction.estado]);
 
   const isFinalizada = auction.estado === 2 || auction.estado === 3 || countdown === 'Finalizada';
+  const isDesierta = auction.estado === 3 || (isFinalizada && (auction.totalOfertas ?? 0) === 0);
 
   // Función para determinar el badge según el estado
-  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada / 3=Desierta (Rojo con letras blancas)
+  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada (Rojo), 3=Desierta (Naranja oscuro/marrón)
   const renderEstadoBadge = () => {
+    if (isDesierta) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-800 text-white shadow-sm">
+          Desierta
+        </span>
+      );
+    }
+
     if (isFinalizada) {
       return (
         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">

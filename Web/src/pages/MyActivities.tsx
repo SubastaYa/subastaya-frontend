@@ -125,7 +125,7 @@ export const MyActivities: React.FC = () => {
         );
       case 3:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-800 text-white shadow-sm">
             Desierta
           </span>
         );
