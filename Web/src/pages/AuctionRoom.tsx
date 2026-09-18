@@ -79,6 +79,7 @@ export interface AuctionClosedPayload {
 export const AuctionRoom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { token, user, isAuthenticated } = useAuth();
+  const isAuditor = Boolean(user?.email?.toLowerCase().includes('auditoria@test.com'));
   const [auction, setAuction] = useState<SubastaDetalleDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -417,6 +418,15 @@ export const AuctionRoom: React.FC = () => {
   // Enviar oferta al backend
   const handleSubmitOffer = async () => {
     if (!auction || !isAuthenticated || isSubmitting || isFinalized || auction.estado !== 1) return;
+
+    if (isAuditor) {
+      setBidFeedback({
+        type: 'error',
+        title: 'Operación no permitida',
+        message: 'El perfil de auditoría tiene restringida la participación en ofertas.',
+      });
+      return;
+    }
 
     const minRequerido = auction.precioActual + auction.incrementoMinimo;
     if (offerAmount < minRequerido) {
@@ -770,25 +780,40 @@ export const AuctionRoom: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* ================= COLUMNA IZQUIERDA: PRODUCTO Y FICHA TÉCNICA ================= */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Imagen Principal del Producto */}
-          <div className="relative w-full h-80 sm:h-96 bg-slate-600 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          {/* Imagen Principal del Producto con Capa de Opacidad */}
+          <div className="relative w-full h-80 sm:h-96 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
             <img
-              src={
-                auction.estado === 2 || auction.estado === 3 || isFinalized
-                  ? '/images/subasta-finalizada.svg'
-                  : (auction.urlImagen || '/images/default-subasta.jpg')
-              }
+              src={auction.urlImagen || '/images/default-subasta.jpg'}
               alt={auction.titulo}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  auction.estado === 2 || auction.estado === 3 || isFinalized
-                    ? '/images/subasta-finalizada.svg'
-                    : '/images/default-subasta.jpg';
+                (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
               }}
             />
+
+            {/* Capa con opacidad que permite ver la imagen de fondo: naranja para desiertas, roja para finalizadas */}
+            {auction.estado === 3 ? (
+              <div className="absolute inset-0 bg-orange-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-4 z-10 select-none">
+                <span className="text-xl sm:text-2xl font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                  Subasta Desierta
+                </span>
+                <span className="text-xs sm:text-sm text-white/95 font-medium drop-shadow-xs mt-1">
+                  El período de subasta concluyó sin ofertas registradas
+                </span>
+              </div>
+            ) : (auction.estado === 2 || isFinalized) ? (
+              <div className="absolute inset-0 bg-rose-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-4 z-10 select-none">
+                <span className="text-xl sm:text-2xl font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                  Subasta Finalizada
+                </span>
+                <span className="text-xs sm:text-sm text-white/95 font-medium drop-shadow-xs mt-1">
+                  El período de pujas ha finalizado. No se admiten nuevas ofertas.
+                </span>
+              </div>
+            ) : null}
+
             {/* Categoría flotante sobre la imagen */}
-            <div className="absolute top-4 left-4">
+            <div className="absolute top-4 left-4 z-20">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/95 text-slate-700 shadow-md backdrop-blur-sm border border-slate-200">
                 <Tag className="w-3.5 h-3.5 text-[#1E3A8A]" />
                 {auction.categoriaNombre || 'General'}
@@ -963,69 +988,81 @@ export const AuctionRoom: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Controles de puja */}
-                  <div className="space-y-3">
-                    <label htmlFor="bid-amount-input" className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
-                      Tu Oferta
-                    </label>
-
-                    {/* Input monetario */}
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm pointer-events-none select-none">$</span>
-                      <input
-                        id="bid-amount-input"
-                        type="number"
-                        min={montoMinimo}
-                        step={auction.incrementoMinimo}
-                        value={offerAmount}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setOfferAmount(val >= 0 ? val : 0);
-                        }}
-                        disabled={isSubmitting}
-                        className="w-full pl-9 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30 focus:border-[#1E3A8A] transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
+                  {/* Controles de puja o aviso de modo auditoría */}
+                  {isAuditor ? (
+                    <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 flex items-start gap-3 text-sm shadow-xs">
+                      <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold block text-amber-950">Modo Auditoría Activo</span>
+                        <span className="text-xs text-amber-800 leading-relaxed">
+                          Esta cuenta posee permisos exclusivamente de visualización y control. La realización de ofertas está inhabilitada.
+                        </span>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <label htmlFor="bid-amount-input" className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+                        Tu Oferta
+                      </label>
 
-                    {/* Botones de incremento rápido */}
-                    <div className="flex gap-2">
-                      {[1, 2, 5].map((multiplier) => {
-                        const incremento = auction.incrementoMinimo * multiplier;
-                        return (
-                          <button
-                            key={multiplier}
-                            type="button"
-                            disabled={isSubmitting}
-                            onClick={() => setOfferAmount(auction.precioActual + incremento)}
-                            className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#1E3A8A]/5 hover:border-[#1E3A8A]/30 hover:text-[#1E3A8A] transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Plus className="w-3 h-3" />
-                            {formatCurrency(incremento)}
-                          </button>
-                        );
-                      })}
+                      {/* Input monetario */}
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm pointer-events-none select-none">$</span>
+                        <input
+                          id="bid-amount-input"
+                          type="number"
+                          min={montoMinimo}
+                          step={auction.incrementoMinimo}
+                          value={offerAmount}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setOfferAmount(val >= 0 ? val : 0);
+                          }}
+                          disabled={isSubmitting}
+                          className="w-full pl-9 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30 focus:border-[#1E3A8A] transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      </div>
+
+                      {/* Botones de incremento rápido */}
+                      <div className="flex gap-2">
+                        {[1, 2, 5].map((multiplier) => {
+                          const incremento = auction.incrementoMinimo * multiplier;
+                          return (
+                            <button
+                              key={multiplier}
+                              type="button"
+                              disabled={isSubmitting}
+                              onClick={() => setOfferAmount(auction.precioActual + incremento)}
+                              className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#1E3A8A]/5 hover:border-[#1E3A8A]/30 hover:text-[#1E3A8A] transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Plus className="w-3 h-3" />
+                              {formatCurrency(incremento)}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Botón confirmar oferta */}
+                      <button
+                        type="button"
+                        onClick={handleSubmitOffer}
+                        disabled={isSubmitting || offerAmount < montoMinimo}
+                        className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-bold text-sm tracking-wide transition-all shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Procesando oferta...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            Confirmar Oferta — {offerAmount >= montoMinimo ? formatCurrency(offerAmount) : formatCurrency(montoMinimo)}
+                          </>
+                        )}
+                      </button>
                     </div>
-
-                    {/* Botón confirmar oferta */}
-                    <button
-                      type="button"
-                      onClick={handleSubmitOffer}
-                      disabled={isSubmitting || offerAmount < montoMinimo}
-                      className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-bold text-sm tracking-wide transition-all shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Procesando oferta...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Confirmar Oferta — {offerAmount >= montoMinimo ? formatCurrency(offerAmount) : formatCurrency(montoMinimo)}
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  )}
 
                   {/* Feedback de la oferta */}
                   {bidFeedback && (

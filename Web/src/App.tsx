@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/useAuth';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Catalog } from './pages/Catalog';
@@ -50,10 +51,12 @@ export const App: React.FC = () => {
             {/* Ventana de cuenta de usuario */}
             <Route path="/mi-cuenta" element={<ProfilePage />} />
 
-            {/* Registro de Actividades / Auditoría */}
-            <Route path="/registro-actividades" element={<AuditLogsPage />} />
-            <Route path="/auditoria" element={<Navigate to="/registro-actividades" replace />} />
-            <Route path="/audit-logs" element={<Navigate to="/registro-actividades" replace />} />
+            {/* Registro de Actividades / Auditoría exclusivo para el rol de auditoría */}
+            <Route element={<AdminRoute />}>
+              <Route path="/registro-actividades" element={<AuditLogsPage />} />
+              <Route path="/auditoria" element={<Navigate to="/registro-actividades" replace />} />
+              <Route path="/audit-logs" element={<Navigate to="/registro-actividades" replace />} />
+            </Route>
           </Route>
         </Route>
 

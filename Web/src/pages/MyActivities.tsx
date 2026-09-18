@@ -125,7 +125,7 @@ export const MyActivities: React.FC = () => {
         );
       case 3:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-800 text-white shadow-sm">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-orange-600 text-white shadow-sm">
             Desierta
           </span>
         );
@@ -291,24 +291,39 @@ export const MyActivities: React.FC = () => {
               key={item.id}
               className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
             >
-              {/* Imagen con Badge de Estado */}
-              <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
+              {/* Imagen con Badge de Estado y Capa de Opacidad */}
+              <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
                 <img
-                  src={
-                    item.estado === 2 || item.estado === 3
-                      ? '/images/subasta-finalizada.svg'
-                      : (item.urlImagen || '/images/default-subasta.jpg')
-                  }
+                  src={item.urlImagen || '/images/default-subasta.jpg'}
                   alt={item.titulo}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      item.estado === 2 || item.estado === 3
-                        ? '/images/subasta-finalizada.svg'
-                        : '/images/default-subasta.jpg';
+                    (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
                   }}
                 />
-                <div className="absolute top-3 right-3">
+
+                {/* Capa con opacidad que permite ver la imagen de fondo */}
+                {item.estado === 3 ? (
+                  <div className="absolute inset-0 bg-orange-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+                    <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                      Subasta Desierta
+                    </span>
+                    <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+                      Sin ofertas registradas
+                    </span>
+                  </div>
+                ) : item.estado === 2 ? (
+                  <div className="absolute inset-0 bg-rose-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+                    <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                      Subasta Finalizada
+                    </span>
+                    <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+                      No se admiten nuevas ofertas
+                    </span>
+                  </div>
+                ) : null}
+
+                <div className="absolute top-3 right-3 z-20">
                   {renderEstadoBadge(item.estado)}
                 </div>
               </div>
@@ -397,24 +412,39 @@ export const MyActivities: React.FC = () => {
                 key={pub.id}
                 className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
               >
-                {/* Imagen con Badge de Estado */}
-                <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
+                {/* Imagen con Badge de Estado y Capa de Opacidad */}
+                <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
                   <img
-                    src={
-                      pub.estado === 2 || pub.estado === 3
-                        ? '/images/subasta-finalizada.svg'
-                        : (pub.urlImagen || '/images/default-subasta.jpg')
-                    }
+                    src={pub.urlImagen || '/images/default-subasta.jpg'}
                     alt={pub.titulo}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        pub.estado === 2 || pub.estado === 3
-                          ? '/images/subasta-finalizada.svg'
-                          : '/images/default-subasta.jpg';
+                      (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
                     }}
                   />
-                  <div className="absolute top-3 right-3">
+
+                  {/* Capa con opacidad que permite ver la imagen de fondo */}
+                  {pub.estado === 3 ? (
+                    <div className="absolute inset-0 bg-orange-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+                      <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                        Subasta Desierta
+                      </span>
+                      <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+                        Sin ofertas registradas
+                      </span>
+                    </div>
+                  ) : pub.estado === 2 ? (
+                    <div className="absolute inset-0 bg-rose-600/60 backdrop-blur-[0.5px] flex flex-col items-center justify-center text-center p-3 z-10 select-none">
+                      <span className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-md">
+                        Subasta Finalizada
+                      </span>
+                      <span className="text-[11px] text-white/95 font-medium drop-shadow-xs mt-0.5">
+                        No se admiten nuevas ofertas
+                      </span>
+                    </div>
+                  ) : null}
+
+                  <div className="absolute top-3 right-3 z-20">
                     {renderEstadoBadge(pub.estado)}
                   </div>
                 </div>

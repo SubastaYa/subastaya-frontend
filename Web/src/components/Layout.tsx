@@ -10,6 +10,8 @@ export const Layout: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  const isAuditor = Boolean(user?.email?.toLowerCase().includes('auditoria@test.com'));
+
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
@@ -33,11 +35,15 @@ export const Layout: React.FC = () => {
   const navLinks = [
     { label: 'Subastas', path: '/', icon: LayoutGrid },
     ...(isAuthenticated
-      ? [
-          { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
-          { label: 'Mis Actividades', path: '/activities', icon: Activity },
-          { label: 'Publicar Subasta', path: '/create-auction', icon: PlusCircle },
-        ]
+      ? isAuditor
+        ? [
+            { label: 'Registro de actividades', path: '/registro-actividades', icon: Activity },
+          ]
+        : [
+            { label: 'Mi Billetera', path: '/wallet', icon: Wallet },
+            { label: 'Mis Actividades', path: '/activities', icon: Activity },
+            { label: 'Publicar Subasta', path: '/create-auction', icon: PlusCircle },
+          ]
       : []),
   ];
 
@@ -269,13 +275,17 @@ export const Layout: React.FC = () => {
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left select-none">
           <div className="flex items-center gap-2.5 text-slate-400 select-none">
             <span>© 2026 SubastaYa.</span>
-            <span className="text-slate-600">•</span>
-            <Link
-              to="/registro-actividades"
-              className="hover:text-slate-200 transition-colors cursor-pointer select-none"
-            >
-              Registro de Actividades
-            </Link>
+            {isAuditor && (
+              <>
+                <span className="text-slate-600">•</span>
+                <Link
+                  to="/registro-actividades"
+                  className="hover:text-slate-200 transition-colors cursor-pointer select-none"
+                >
+                  Registro de Actividades
+                </Link>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-4 text-slate-400 select-none">
             <button
