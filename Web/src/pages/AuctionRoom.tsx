@@ -11,9 +11,18 @@ import {
   UserCheck,
   Award,
   DollarSign,
-  Hourglass
+  Hourglass,
+  Send,
+  ShieldCheck,
+  AlertTriangle,
+  Banknote,
+  Plus,
+  CheckCircle,
+  LogIn,
+  Loader2
 } from 'lucide-react';
 import { HubConnectionBuilder, HubConnection, HubConnectionState, LogLevel } from '@microsoft/signalr';
+import axios from 'axios';
 import api, { TOKEN_STORAGE_KEY } from '../api/axios';
 import { useAuth } from '../context/useAuth';
 
@@ -57,11 +66,19 @@ interface TimeExtendedPayload {
 
 export const AuctionRoom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
+  const { token, user, isAuthenticated } = useAuth();
   const [auction, setAuction] = useState<SubastaDetalleDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [tiempoRestante, setTiempoRestante] = useState<string>('');
+  const [miUltimaOferta, setMiUltimaOferta] = useState<number | null>(null);
+  const [offerAmount, setOfferAmount] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [bidFeedback, setBidFeedback] = useState<{
+    type: 'success' | 'error' | 'warning';
+    title?: string;
+    message: string;
+  } | null>(null);
 
   // Contador regresivo en tiempo real vinculado a la fecha de cierre de la subasta
   useEffect(() => {
@@ -138,6 +155,26 @@ export const AuctionRoom: React.FC = () => {
     };
   }, [id]);
 
+  // Inicializar miUltimaOferta si el usuario autenticado es el postor líder actual
+  const postorLiderId = auction?.postorLiderId ?? null;
+  const precioActualLider = auction?.precioActual ?? 0;
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (postorLiderId !== null && userId !== null && postorLiderId === Number(userId)) {
+      setMiUltimaOferta(precioActualLider);
+    }
+  }, [postorLiderId, precioActualLider, userId]);
+
+  // Actualizar offerAmount reactivamente cuando cambia el precio actual
+  const precioActualRef = auction?.precioActual ?? 0;
+  const incrementoMinimoRef = auction?.incrementoMinimo ?? 0;
+  useEffect(() => {
+    if (precioActualRef > 0 && incrementoMinimoRef > 0) {
+      const minSiguiente = precioActualRef + incrementoMinimoRef;
+      setOfferAmount((prev) => (prev < minSiguiente ? minSiguiente : prev));
+    }
+  }, [precioActualRef, incrementoMinimoRef]);
+
   // Conexión en tiempo real con SignalR
   useEffect(() => {
     if (!auction?.id) return;
@@ -170,6 +207,7 @@ export const AuctionRoom: React.FC = () => {
         return {
           ...prev,
           precioActual: data.amount,
+          postorLiderId: data.buyerId !== undefined ? data.buyerId : prev.postorLiderId,
           ultimasOfertas: [nuevaOferta, ...(prev.ultimasOfertas || [])],
         };
       });
@@ -262,6 +300,71 @@ export const AuctionRoom: React.FC = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(monto);
+  };
+
+  // Enviar oferta al backend
+  const handleSubmitOffer = async () => {
+    if (!auction || !isAuthenticated || isSubmitting) return;
+
+    const minRequerido = auction.precioActual + auction.incrementoMinimo;
+    if (offerAmount < minRequerido) {
+      setBidFeedback({
+        type: 'error',
+        message: `El monto mínimo para ofertar es ${formatCurrency(minRequerido)}.`,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setBidFeedback(null);
+
+    try {
+      await api.post(`/subastas/${auction.id}/ofertas`, { amount: offerAmount });
+      setMiUltimaOferta(offerAmount);
+      setBidFeedback({
+        type: 'success',
+        title: '¡Oferta confirmada!',
+        message: `Tu puja de ${formatCurrency(offerAmount)} fue registrada exitosamente.`,
+      });
+      setTimeout(() => setBidFeedback(null), 4000);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const detail = (err.response?.data as Record<string, string>)?.detail
+          || (err.response?.data as Record<string, string>)?.message;
+
+        if (status === 409) {
+          setBidFeedback({
+            type: 'warning',
+            title: '¡Oferta simultánea detectada!',
+            message: detail || 'El precio se ha actualizado por una puja concurrente. Intenta nuevamente con el nuevo valor sugerido.',
+          });
+        } else if (status === 422) {
+          setBidFeedback({
+            type: 'error',
+            title: 'Fondos insuficientes',
+            message: detail || 'No dispones de saldo suficiente en tu billetera para respaldar esta oferta.',
+          });
+        } else if (status === 400) {
+          setBidFeedback({
+            type: 'error',
+            message: detail || 'Subasta no activa o monto inferior al mínimo requerido.',
+          });
+        } else {
+          setBidFeedback({
+            type: 'error',
+            message: detail || 'No se pudo procesar la oferta. Intenta nuevamente.',
+          });
+        }
+      } else {
+        setBidFeedback({
+          type: 'error',
+          message: 'Error de conexión con el servidor. Verifica tu red e intenta nuevamente.',
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Formato de fecha y hora local
@@ -368,6 +471,10 @@ export const AuctionRoom: React.FC = () => {
   const ofertas = auction.ultimasOfertas ?? [];
   const tieneOfertas = ofertas.length > 0;
   const precioLider = tieneOfertas ? auction.precioActual : auction.precioBase;
+  const esLider = miUltimaOferta !== null && auction.precioActual === miUltimaOferta;
+  const fueSuperado = miUltimaOferta !== null && auction.precioActual > miUltimaOferta;
+  const subastaActiva = auction.estado === 1;
+  const montoMinimo = auction.precioActual + auction.incrementoMinimo;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
@@ -533,6 +640,166 @@ export const AuctionRoom: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* ═══════════ CONSOLA DE PUJA ═══════════ */}
+            {subastaActiva ? (
+              isAuthenticated ? (
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  {/* Badge de liderazgo */}
+                  {esLider && (
+                    <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm">
+                      <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-emerald-800 block">¡Eres el postor líder!</span>
+                        <span className="text-xs text-emerald-600">Tu oferta de {formatCurrency(miUltimaOferta!)} encabeza la subasta.</span>
+                      </div>
+                    </div>
+                  )}
+                  {fueSuperado && (
+                    <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 shadow-sm">
+                      <div className="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                        <AlertTriangle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-amber-800 block">¡Tu oferta fue superada!</span>
+                        <span className="text-xs text-amber-700">Puja ahora para recuperar la punta de la subasta.</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Controles de puja */}
+                  <div className="space-y-3">
+                    <label htmlFor="bid-amount-input" className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+                      Tu Oferta
+                    </label>
+
+                    {/* Input monetario */}
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm pointer-events-none select-none">$</span>
+                      <input
+                        id="bid-amount-input"
+                        type="number"
+                        min={montoMinimo}
+                        step={auction.incrementoMinimo}
+                        value={offerAmount}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setOfferAmount(val >= 0 ? val : 0);
+                        }}
+                        disabled={isSubmitting}
+                        className="w-full pl-9 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30 focus:border-[#1E3A8A] transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+
+                    {/* Botones de incremento rápido */}
+                    <div className="flex gap-2">
+                      {[1, 2, 5].map((multiplier) => {
+                        const incremento = auction.incrementoMinimo * multiplier;
+                        return (
+                          <button
+                            key={multiplier}
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => setOfferAmount(auction.precioActual + incremento)}
+                            className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#1E3A8A]/5 hover:border-[#1E3A8A]/30 hover:text-[#1E3A8A] transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Plus className="w-3 h-3" />
+                            {formatCurrency(incremento)}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Botón confirmar oferta */}
+                    <button
+                      type="button"
+                      onClick={handleSubmitOffer}
+                      disabled={isSubmitting || offerAmount < montoMinimo}
+                      className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-bold text-sm tracking-wide transition-all shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Procesando oferta...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Confirmar Oferta — {offerAmount >= montoMinimo ? formatCurrency(offerAmount) : formatCurrency(montoMinimo)}
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Feedback de la oferta */}
+                  {bidFeedback && (
+                    <div
+                      className={`flex items-start gap-3 p-3.5 rounded-xl border text-sm ${
+                        bidFeedback.type === 'success'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          : bidFeedback.type === 'warning'
+                          ? 'bg-amber-50 border-amber-200 text-amber-800'
+                          : 'bg-red-50 border-red-200 text-red-800'
+                      }`}
+                    >
+                      <div className="shrink-0 mt-0.5">
+                        {bidFeedback.type === 'success' ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-600" />
+                        ) : bidFeedback.type === 'warning' ? (
+                          <AlertTriangle className="w-4 h-4 text-amber-600" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-red-600" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        {bidFeedback.title && (
+                          <span className="font-bold block mb-0.5">{bidFeedback.title}</span>
+                        )}
+                        <span className="text-xs leading-relaxed block">{bidFeedback.message}</span>
+                        {bidFeedback.type === 'error' && bidFeedback.title === 'Fondos insuficientes' && (
+                          <Link
+                            to="/wallet"
+                            className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#1E3A8A] hover:text-[#1E40AF] underline underline-offset-2 transition-colors"
+                          >
+                            <Banknote className="w-3.5 h-3.5" />
+                            Ir a Mi Billetera para recargar
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Usuario no autenticado */
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                      <LogIn className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-slate-700 block">Inicia sesión para ofertar</span>
+                      <span className="text-xs text-slate-500">Debes estar registrado para participar en esta subasta.</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            ) : (
+              auction.estado === 0 ? (
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 shrink-0">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-blue-800 block">Subasta programada</span>
+                      <span className="text-xs text-blue-600">Las pujas se habilitarán cuando la subasta comience.</span>
+                    </div>
+                  </div>
+                </div>
+              ) : null
+            )}
 
             {/* Historial Cronológico de Ofertas */}
             <div className="space-y-3 pt-2">

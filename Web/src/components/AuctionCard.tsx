@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Tag, Gavel } from 'lucide-react';
+import { Clock, Tag, Gavel, ShieldCheck } from 'lucide-react';
 
 export interface SubastaListDto {
   id: number;
@@ -13,6 +13,8 @@ export interface SubastaListDto {
   categoriaNombre: string;
   vendedorNombre: string;
   totalOfertas: number;
+  esLider?: boolean;
+  miOfertaMaxima?: number;
 }
 
 interface AuctionCardProps {
@@ -122,6 +124,21 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
               {formatCurrency(auction.precioActual || auction.precioBase)}
             </div>
           </div>
+
+          {/* Banner de Liderazgo (solo presente en Mis Actividades cuando la subasta provee esLider) */}
+          {auction.esLider && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
+              <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-emerald-800 block">¡Estás liderando!</span>
+                <span className="text-[11px] text-emerald-600 block truncate">
+                  Tu oferta de {formatCurrency(auction.miOfertaMaxima ?? auction.precioActual)} encabeza la subasta.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Métricas: Ofertas y Fecha de Cierre */}
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium pt-1">

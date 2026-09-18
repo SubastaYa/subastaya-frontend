@@ -61,6 +61,8 @@ export const MyActivities: React.FC = () => {
       categoriaNombre: raw.categoriaNombre || 'General',
       vendedorNombre: raw.vendedorNombre || (isPublicacion ? 'Tú (Vendedor)' : 'Vendedor'),
       totalOfertas: Number(raw.totalOfertas ?? (raw.miOfertaMaxima ? 1 : 0)),
+      esLider: raw.esLider ?? false,
+      miOfertaMaxima: raw.miOfertaMaxima ? Number(raw.miOfertaMaxima) : undefined,
     };
   };
 
