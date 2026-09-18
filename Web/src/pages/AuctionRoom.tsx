@@ -18,7 +18,10 @@ import {
   CheckCircle,
   LogIn,
   Loader2,
-  Zap
+  Zap,
+  Trophy,
+  X,
+  Award
 } from 'lucide-react';
 import { HubConnectionBuilder, HubConnection, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import axios from 'axios';
@@ -63,6 +66,13 @@ interface TimeExtendedPayload {
   newEndTime: string;
 }
 
+export interface AuctionClosedPayload {
+  auctionId: number;
+  status: string; // "Finalizada" | "Desierta"
+  winnerPseudonym?: string | null;
+  finalAmount?: number | null;
+}
+
 export const AuctionRoom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { token, user, isAuthenticated } = useAuth();
@@ -73,6 +83,10 @@ export const AuctionRoom: React.FC = () => {
   const [isCriticalZone, setIsCriticalZone] = useState<boolean>(false);
   const [showAntiSnipingAlert, setShowAntiSnipingAlert] = useState<boolean>(false);
   const [isFinalized, setIsFinalized] = useState<boolean>(false);
+  const [closedEventData, setClosedEventData] = useState<AuctionClosedPayload | null>(null);
+  const [showClosedModal, setShowClosedModal] = useState<boolean>(false);
+  const [isLoadingAllOffers, setIsLoadingAllOffers] = useState<boolean>(false);
+  const [hasLoadedAllOffers, setHasLoadedAllOffers] = useState<boolean>(false);
   const [miUltimaOferta, setMiUltimaOferta] = useState<number | null>(null);
   const [offerAmount, setOfferAmount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -242,10 +256,29 @@ export const AuctionRoom: React.FC = () => {
       }, 5000);
     };
 
+    // Manejador del evento AuctionClosed (Liquidación por Worker o Cierre de Subasta)
+    const handleAuctionClosed = (data: AuctionClosedPayload) => {
+      console.log('SignalR AuctionClosed recibido en tiempo real:', data);
+      const esDesierta = data.status.toLowerCase().includes('desierta');
+      setAuction((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          estado: esDesierta ? 3 : 2,
+        };
+      });
+      setIsFinalized(true);
+      setTimeLeft('00:00:00');
+      setIsCriticalZone(false);
+      setClosedEventData(data);
+      setShowClosedModal(true);
+    };
+
     // Suscripción a eventos del servidor
     connection.on('ReceiveNewOffer', handleNewOffer);
     connection.on('ReceiveNewBid', handleNewOffer);
     connection.on('TimeExtended', handleTimeExtended);
+    connection.on('AuctionClosed', handleAuctionClosed);
 
     connection.onreconnecting(() => {
       console.warn('SignalR: Reconectando al Hub de subastas...');
@@ -317,6 +350,29 @@ export const AuctionRoom: React.FC = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(monto);
+  };
+
+  // Cargar historial completo de ofertas si hay más de 5
+  const fetchFullOfferHistory = async () => {
+    if (!auction?.id || isLoadingAllOffers) return;
+    setIsLoadingAllOffers(true);
+    try {
+      const resp = await api.get<OfertaResumenDto[]>(`/subastas/${auction.id}/ofertas`);
+      if (Array.isArray(resp.data)) {
+        setAuction((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            ultimasOfertas: resp.data,
+          };
+        });
+        setHasLoadedAllOffers(true);
+      }
+    } catch (err) {
+      console.error('Error al cargar historial completo de ofertas:', err);
+    } finally {
+      setIsLoadingAllOffers(false);
+    }
   };
 
   // Enviar oferta al backend
@@ -522,6 +578,68 @@ export const AuctionRoom: React.FC = () => {
             <span className="text-xs text-amber-700 block">
               El cierre se ha extendido 2 minutos adicionales.
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Modal / Banner Flotante de Subasta Finalizada en Tiempo Real */}
+      {showClosedModal && closedEventData && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 text-center animate-in fade-in zoom-in-95 duration-200 relative">
+            <button
+              type="button"
+              onClick={() => setShowClosedModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              title="Cerrar aviso"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {closedEventData.status.toLowerCase().includes('desierta') ? (
+              <>
+                <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4 border border-slate-200">
+                  <Gavel className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Subasta Desierta</h3>
+                <p className="text-sm text-slate-600 mb-6">
+                  El tiempo de la subasta ha concluido sin recibir ofertas válidas registradas.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-200 shadow-sm">
+                  <Trophy className="w-7 h-7" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-1">¡Subasta Adjudicada!</h3>
+                <p className="text-xs text-slate-500 mb-4">
+                  La subasta ha concluido y fue liquidada con éxito.
+                </p>
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Ganador adjudicado:</span>
+                    <strong className="text-slate-800 text-sm font-bold">
+                      {closedEventData.winnerPseudonym || 'Postor anónimo'}
+                    </strong>
+                  </div>
+                  {closedEventData.finalAmount && (
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200">
+                      <span>Monto final liquidado:</span>
+                      <strong className="text-emerald-700 text-base font-extrabold">
+                        {formatCurrency(closedEventData.finalAmount)}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowClosedModal(false)}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-semibold text-sm transition-colors shadow-sm cursor-pointer"
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
@@ -847,14 +965,32 @@ export const AuctionRoom: React.FC = () => {
                 </div>
               ) : (
                 <div className="border-t border-slate-100 pt-4">
-                  <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 border border-slate-200">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 shrink-0">
-                      <Gavel className="w-5 h-5" />
+                  <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                        {auction.estado === 3 ? <Gavel className="w-5 h-5" /> : <Award className="w-5 h-5 text-amber-600" />}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-sm font-bold text-slate-800 block">
+                          {auction.estado === 3 ? 'Subasta Desierta' : 'Subasta Finalizada'}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {auction.estado === 3
+                            ? 'Esta subasta ha concluido sin ofertas registradas.'
+                            : closedEventData?.winnerPseudonym
+                            ? `Adjudicada a ${closedEventData.winnerPseudonym}`
+                            : 'Esta subasta ha concluido y ya no acepta nuevas ofertas.'}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-bold text-slate-800 block">Subasta Finalizada</span>
-                      <span className="text-xs text-slate-500">Esta subasta ha concluido y ya no acepta nuevas ofertas.</span>
-                    </div>
+                    {closedEventData?.finalAmount && (
+                      <div className="text-xs text-slate-600 pt-1 border-t border-slate-200 flex justify-between items-center">
+                        <span>Monto adjudicado:</span>
+                        <strong className="text-sm font-bold text-emerald-700">
+                          {formatCurrency(closedEventData.finalAmount)}
+                        </strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -867,9 +1003,21 @@ export const AuctionRoom: React.FC = () => {
                   <Gavel className="w-4 h-4 text-[#1E3A8A]" />
                   Historial de Ofertas
                 </h3>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  {ofertas.length} {ofertas.length === 1 ? 'oferta' : 'ofertas'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    {ofertas.length} {ofertas.length === 1 ? 'oferta' : 'ofertas'}
+                  </span>
+                  {!hasLoadedAllOffers && ofertas.length >= 5 && (
+                    <button
+                      type="button"
+                      onClick={fetchFullOfferHistory}
+                      disabled={isLoadingAllOffers}
+                      className="text-[11px] font-semibold text-[#1E3A8A] hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      {isLoadingAllOffers ? 'Cargando...' : 'Ver todas'}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {tieneOfertas ? (
