@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../api/axios';
+import { auctionService, categoryService } from '../services';
 import {
   PlusCircle,
   Tag,
@@ -66,23 +66,14 @@ export const CreateAuction: React.FC = () => {
     const fetchCategorias = async () => {
       try {
         setIsLoadingCategorias(true);
-        const response = await api.get<Categoria[]>('/categories');
+        const response = await categoryService.getAll();
         setCategorias(response.data || []);
         if (response.data && response.data.length > 0) {
           setFormData((prev) => ({ ...prev, categoriaId: response.data[0].id.toString() }));
         }
       } catch (err: unknown) {
         console.error('Error al cargar categorías:', err);
-        // Fallback endpoint si /categories no responde
-        try {
-          const fallbackResp = await api.get<Categoria[]>('/categorias');
-          setCategorias(fallbackResp.data || []);
-          if (fallbackResp.data && fallbackResp.data.length > 0) {
-            setFormData((prev) => ({ ...prev, categoriaId: fallbackResp.data[0].id.toString() }));
-          }
-        } catch {
-          setError('No se pudieron cargar las categorías del sistema.');
-        }
+        setError('No se pudieron cargar las categorías del sistema.');
       } finally {
         setIsLoadingCategorias(false);
       }
@@ -165,7 +156,7 @@ export const CreateAuction: React.FC = () => {
         fechaFin: finDate.toISOString(),
       };
 
-      await api.post('/auctions', payload);
+      await auctionService.create(payload);
 
       setSuccess('¡Subasta creada y publicada con éxito! Redirigiendo a las subastas...');
 

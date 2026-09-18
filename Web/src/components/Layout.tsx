@@ -267,8 +267,15 @@ export const Layout: React.FC = () => {
       {/* Pie de página sutil */}
       <footer className="bg-brand-navy text-slate-400 py-6 border-t border-slate-800 text-xs mt-auto select-none">
         <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left select-none">
-          <div className="text-slate-400 select-none">
-            © 2026 SubastaYa.
+          <div className="flex items-center gap-2.5 text-slate-400 select-none">
+            <span>© 2026 SubastaYa.</span>
+            <span className="text-slate-600">•</span>
+            <Link
+              to="/registro-actividades"
+              className="hover:text-slate-200 transition-colors cursor-pointer select-none"
+            >
+              Registro de Actividades
+            </Link>
           </div>
           <div className="flex items-center gap-4 text-slate-400 select-none">
             <button

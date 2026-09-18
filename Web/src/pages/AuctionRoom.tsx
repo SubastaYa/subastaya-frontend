@@ -21,11 +21,13 @@ import {
   Zap,
   Trophy,
   X,
-  Award
+  Award,
+  FileText
 } from 'lucide-react';
 import { HubConnectionBuilder, HubConnection, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import axios from 'axios';
-import api, { TOKEN_STORAGE_KEY } from '../api/axios';
+import { TOKEN_STORAGE_KEY } from '../api/axios';
+import { auctionService } from '../services';
 import { useAuth } from '../context/useAuth';
 
 export interface OfertaResumenDto {
@@ -87,6 +89,10 @@ export const AuctionRoom: React.FC = () => {
   const [showClosedModal, setShowClosedModal] = useState<boolean>(false);
   const [isLoadingAllOffers, setIsLoadingAllOffers] = useState<boolean>(false);
   const [hasLoadedAllOffers, setHasLoadedAllOffers] = useState<boolean>(false);
+  const [selectedOfferDetail, setSelectedOfferDetail] = useState<OfertaResumenDto | null>(null);
+  const [isLoadingOfferDetail, setIsLoadingOfferDetail] = useState<boolean>(false);
+  const [showOfferDetailModal, setShowOfferDetailModal] = useState<boolean>(false);
+  const [offerDetailError, setOfferDetailError] = useState<string | null>(null);
   const [miUltimaOferta, setMiUltimaOferta] = useState<number | null>(null);
   const [offerAmount, setOfferAmount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -155,10 +161,9 @@ export const AuctionRoom: React.FC = () => {
       setErrorMessage(null);
 
       try {
-        // Consultar el detalle de la subasta (funciona en /subastas/{id} o /auctions/{id})
-        const response = await api.get<SubastaDetalleDto>(`/subastas/${id}`);
+        const response = await auctionService.getById(id);
         if (isMounted) {
-          setAuction(response.data);
+          setAuction(response.data as SubastaDetalleDto);
         }
       } catch (err: unknown) {
         if (!isMounted) return;
@@ -182,15 +187,27 @@ export const AuctionRoom: React.FC = () => {
     };
   }, [id]);
 
-  // Inicializar miUltimaOferta si el usuario autenticado es el postor líder actual
+  // Inicializar y persistir miUltimaOferta en localStorage para mantener el estado tras recargar (F5)
   const postorLiderId = auction?.postorLiderId ?? null;
   const precioActualLider = auction?.precioActual ?? 0;
   const userId = user?.id ?? null;
+  const currentAuctionId = auction?.id ?? null;
+
   useEffect(() => {
-    if (postorLiderId !== null && userId !== null && postorLiderId === Number(userId)) {
+    if (!currentAuctionId || !userId) return;
+    const storageKey = `subastaya_mi_oferta_${currentAuctionId}_${userId}`;
+    const valorGuardado = localStorage.getItem(storageKey);
+
+    if (postorLiderId !== null && postorLiderId === Number(userId)) {
       setMiUltimaOferta(precioActualLider);
+      localStorage.setItem(storageKey, String(precioActualLider));
+    } else if (valorGuardado) {
+      const montoParsed = Number(valorGuardado);
+      if (!isNaN(montoParsed) && montoParsed > 0) {
+        setMiUltimaOferta(montoParsed);
+      }
     }
-  }, [postorLiderId, precioActualLider, userId]);
+  }, [postorLiderId, precioActualLider, userId, currentAuctionId]);
 
   // Actualizar offerAmount reactivamente cuando cambia el precio actual
   const precioActualRef = auction?.precioActual ?? 0;
@@ -357,13 +374,13 @@ export const AuctionRoom: React.FC = () => {
     if (!auction?.id || isLoadingAllOffers) return;
     setIsLoadingAllOffers(true);
     try {
-      const resp = await api.get<OfertaResumenDto[]>(`/subastas/${auction.id}/ofertas`);
+      const resp = await auctionService.getOffers(auction.id);
       if (Array.isArray(resp.data)) {
         setAuction((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
-            ultimasOfertas: resp.data,
+            ultimasOfertas: resp.data as OfertaResumenDto[],
           };
         });
         setHasLoadedAllOffers(true);
@@ -372,6 +389,23 @@ export const AuctionRoom: React.FC = () => {
       console.error('Error al cargar historial completo de ofertas:', err);
     } finally {
       setIsLoadingAllOffers(false);
+    }
+  };
+
+  // Consultar comprobante individual de oferta (GET /api/subastas/{id}/ofertas/{ofertaId})
+  const handleViewOfferDetail = async (ofertaId: number) => {
+    if (!auction?.id) return;
+    setIsLoadingOfferDetail(true);
+    setOfferDetailError(null);
+    setShowOfferDetailModal(true);
+    try {
+      const resp = await auctionService.getOfferById(auction.id, ofertaId);
+      setSelectedOfferDetail(resp.data as OfertaResumenDto);
+    } catch (err) {
+      console.error('Error al obtener detalle de oferta individual:', err);
+      setOfferDetailError('No se pudo recuperar el detalle individual de la oferta.');
+    } finally {
+      setIsLoadingOfferDetail(false);
     }
   };
 
@@ -392,8 +426,11 @@ export const AuctionRoom: React.FC = () => {
     setBidFeedback(null);
 
     try {
-      await api.post(`/subastas/${auction.id}/ofertas`, { amount: offerAmount });
+      await auctionService.submitBid(auction.id, offerAmount);
       setMiUltimaOferta(offerAmount);
+      if (user?.id) {
+        localStorage.setItem(`subastaya_mi_oferta_${auction.id}_${user.id}`, String(offerAmount));
+      }
       setBidFeedback({
         type: 'success',
         title: '¡Oferta confirmada!',
@@ -544,8 +581,9 @@ export const AuctionRoom: React.FC = () => {
   const ofertas = auction.ultimasOfertas ?? [];
   const tieneOfertas = ofertas.length > 0;
   const precioLider = tieneOfertas ? auction.precioActual : auction.precioBase;
-  const esLider = miUltimaOferta !== null && auction.precioActual === miUltimaOferta;
-  const fueSuperado = miUltimaOferta !== null && auction.precioActual > miUltimaOferta;
+  const esLider = (auction.postorLiderId !== null && auction.postorLiderId !== undefined && user?.id && auction.postorLiderId === Number(user.id)) ||
+    (miUltimaOferta !== null && auction.precioActual === miUltimaOferta);
+  const fueSuperado = !esLider && miUltimaOferta !== null && auction.precioActual > miUltimaOferta;
   const subastaActiva = auction.estado === 1 && !isFinalized;
   const montoMinimo = auction.precioActual + auction.incrementoMinimo;
 
@@ -640,6 +678,98 @@ export const AuctionRoom: React.FC = () => {
             >
               Entendido
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Comprobante / Detalle Individual de Oferta (GET /api/subastas/{id}/ofertas/{ofertaId}) */}
+      {showOfferDetailModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 bg-[#E6F4EA] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-700" />
+                <h3 className="font-bold text-slate-900 text-base">
+                  Comprobante Oficial de Oferta
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOfferDetailModal(false)}
+                className="text-slate-500 hover:text-slate-800 rounded-lg p-1 transition-colors cursor-pointer"
+                title="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {isLoadingOfferDetail ? (
+                <div className="flex flex-col items-center justify-center py-10 text-slate-500">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-action mb-2" />
+                  <span className="text-xs font-medium">Consultando registro individual en servidor...</span>
+                </div>
+              ) : offerDetailError ? (
+                <div className="text-center py-6">
+                  <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+                  <p className="text-sm text-slate-700">{offerDetailError}</p>
+                </div>
+              ) : selectedOfferDetail ? (
+                <div className="space-y-4 text-xs">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between text-slate-500">
+                      <span>ID de Oferta:</span>
+                      <span className="font-mono font-bold text-slate-800 text-sm">
+                        #{selectedOfferDetail.id}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-slate-500">
+                      <span>Subasta:</span>
+                      <span className="font-semibold text-slate-800 truncate max-w-[220px]">
+                        #{auction.id} - {auction.titulo}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-slate-500">
+                      <span>Comprador:</span>
+                      <span className="font-mono font-semibold text-slate-800">
+                        {selectedOfferDetail.compradorNombre}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-slate-500">
+                      <span>Fecha y hora oficial:</span>
+                      <span className="font-mono text-slate-700">
+                        {formatDateTime(selectedOfferDetail.fechaHora)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                      <span className="font-bold text-slate-700">Monto ofertado:</span>
+                      <span className="text-lg font-extrabold text-emerald-700">
+                        {formatCurrency(selectedOfferDetail.monto)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl">
+                    <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span className="text-[11px] font-medium leading-relaxed">
+                      Oferta verificada y respaldada por retención de saldo (escrow) en el ledger del sistema.
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setShowOfferDetailModal(false)}
+                className="mt-6 w-full py-2.5 px-4 rounded-xl bg-brand-action hover:bg-brand-action-hover text-white font-semibold text-xs transition-colors shadow-sm cursor-pointer"
+              >
+                Cerrar comprobante
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1062,14 +1192,27 @@ export const AuctionRoom: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Monto de la oferta */}
-                        <div className="text-right shrink-0">
-                          <span
-                            className={`text-sm sm:text-base font-bold tracking-tight block ${esLider ? 'text-emerald-700' : 'text-slate-700'
-                              }`}
-                          >
-                            {formatCurrency(oferta.monto)}
-                          </span>
+                        {/* Monto de la oferta y botón de comprobante oficial */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right">
+                            <span
+                              className={`text-sm sm:text-base font-bold tracking-tight block ${esLider ? 'text-emerald-700' : 'text-slate-700'
+                                }`}
+                            >
+                              {formatCurrency(oferta.monto)}
+                            </span>
+                          </div>
+
+                          {oferta.id && (
+                            <button
+                              type="button"
+                              onClick={() => handleViewOfferDetail(oferta.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-brand-action hover:bg-slate-200/60 transition-colors cursor-pointer"
+                              title={`Ver comprobante oficial de oferta #${oferta.id}`}
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );

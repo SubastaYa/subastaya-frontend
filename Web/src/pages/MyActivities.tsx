@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api/axios';
+import { auctionService } from '../services';
 import {
   Gavel,
   Tag,
@@ -85,11 +85,11 @@ export const MyActivities: React.FC = () => {
 
     try {
       if (tab === 'ofertas') {
-        const response = await api.get<MiOfertaItem[]>('/subastas/mis-ofertas');
-        setOfertas(Array.isArray(response.data) ? response.data : []);
+        const response = await auctionService.getMyBids();
+        setOfertas(Array.isArray(response.data) ? (response.data as MiOfertaItem[]) : []);
       } else {
-        const response = await api.get<MiPublicacionItem[]>('/subastas/mis-publicaciones');
-        setPublicaciones(Array.isArray(response.data) ? response.data : []);
+        const response = await auctionService.getMyAuctions();
+        setPublicaciones(Array.isArray(response.data) ? (response.data as MiPublicacionItem[]) : []);
       }
     } catch (err: unknown) {
       console.error(`Error al obtener ${tab}:`, err);

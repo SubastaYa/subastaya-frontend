@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { api } from '../api/axios';
 import { AuctionCard, type SubastaListDto } from '../components/AuctionCard';
-import { Filter, Layers, AlertCircle, RefreshCw, ArrowUpDown, DollarSign, X } from 'lucide-react';
+import { Filter, Layers, AlertCircle, RefreshCw, ArrowUpDown, DollarSign, X, Loader2 } from 'lucide-react';
+import { auctionService, categoryService } from '../services';
 
 interface CategoriaDto {
   id: number;
@@ -18,13 +18,17 @@ export const Catalog: React.FC = () => {
   const [precioMin, setPrecioMin] = useState<string>('');
   const [precioMax, setPrecioMax] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const PAGE_SIZE = 12;
 
   // Cargar categorías disponibles al montar
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get('/categories');
+        const response = await categoryService.getAll();
         const data = Array.isArray(response.data) ? response.data : response.data.value || [];
         setCategories(data);
       } catch (err) {
@@ -34,14 +38,19 @@ export const Catalog: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Cargar subastas con filtros dinámicos
-  const fetchAuctions = useCallback(async () => {
-    setIsLoading(true);
+  // Cargar subastas con filtros dinámicos y paginación progresiva
+  const fetchAuctions = useCallback(async (pageToLoad: number = 1, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
     try {
-      // Contrato Backend: tamanioPagina, estado, categoriaId, orden, precioMin, precioMax
       const params: Record<string, string | number> = {
-        tamanioPagina: 50,
+        page: pageToLoad,
+        pageSize: PAGE_SIZE,
+        tamanioPagina: PAGE_SIZE,
       };
 
       if (selectedEstado && selectedEstado !== 'Todas') {
@@ -66,19 +75,27 @@ export const Catalog: React.FC = () => {
         params.precioMax = pMax;
       }
 
-      const response = await api.get('/auctions', { params });
+      const response = await auctionService.getCatalog(params);
       const data = Array.isArray(response.data) ? response.data : response.data.value || [];
-      setAuctions(data);
+      if (append) {
+        setAuctions((prev) => [...prev, ...data]);
+      } else {
+        setAuctions(data);
+      }
+
+      setHasMore(data.length >= PAGE_SIZE);
+      setPage(pageToLoad);
     } catch (err: unknown) {
       console.error('Error al obtener subastas:', err);
       setError('No se pudieron cargar las subastas. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   }, [selectedEstado, selectedCategoria, selectedOrden, precioMin, precioMax]);
 
   useEffect(() => {
-    fetchAuctions();
+    fetchAuctions(1, false);
   }, [fetchAuctions]);
 
   const estadoFiltros = [
@@ -103,6 +120,11 @@ export const Catalog: React.FC = () => {
     setSelectedOrden('tiempo_restante');
     setPrecioMin('');
     setPrecioMax('');
+  };
+
+  const handleLoadMore = () => {
+    if (isLoadingMore || !hasMore) return;
+    fetchAuctions(page + 1, true);
   };
 
   return (
@@ -245,7 +267,7 @@ export const Catalog: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={fetchAuctions}
+            onClick={() => fetchAuctions()}
             className="flex items-center gap-1.5 text-xs font-bold text-rose-700 hover:text-rose-900 bg-rose-100/60 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -311,11 +333,34 @@ export const Catalog: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {auctions.map((auction) => (
-            <AuctionCard key={auction.id} auction={auction} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {auctions.map((auction) => (
+              <AuctionCard key={auction.id} auction={auction} />
+            ))}
+          </div>
+
+          {/* Botón de Carga Progresiva / Cargar Más */}
+          {hasMore && (
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-sm transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-brand-action" />
+                    <span>Cargando más subastas...</span>
+                  </>
+                ) : (
+                  <span>Cargar más subastas</span>
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

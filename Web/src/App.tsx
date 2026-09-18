@@ -10,6 +10,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { CreateAuction } from './pages/CreateAuction';
 import { MyActivities } from './pages/MyActivities';
 import { AuctionRoom } from './pages/AuctionRoom';
+import { AuditLogsPage } from './pages/AuditLogsPage';
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, token } = useAuth();
@@ -46,8 +47,13 @@ export const App: React.FC = () => {
             <Route path="/activities" element={<MyActivities />} />
             <Route path="/create-auction" element={<CreateAuction />} />
             <Route path="/auctions/:id" element={<AuctionRoom />} />
-            {/* Ventana de cuenta completa como billetera */}
+            {/* Ventana de cuenta de usuario */}
             <Route path="/mi-cuenta" element={<ProfilePage />} />
+
+            {/* Registro de Actividades / Auditoría */}
+            <Route path="/registro-actividades" element={<AuditLogsPage />} />
+            <Route path="/auditoria" element={<Navigate to="/registro-actividades" replace />} />
+            <Route path="/audit-logs" element={<Navigate to="/registro-actividades" replace />} />
           </Route>
         </Route>
 

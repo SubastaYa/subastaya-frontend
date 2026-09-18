@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { walletService } from '../services';
 import {
   Wallet as WalletIcon,
   History,
@@ -52,7 +52,7 @@ export const Wallet: React.FC = () => {
   // Cargar saldo de billetera
   const fetchBalance = async () => {
     try {
-      const res = await api.get<WalletResponseDto>('/wallet/balance');
+      const res = await walletService.getBalance();
       if (res.data) {
         setBalance({
           totalBalance: Number(res.data.totalBalance ?? 0),
@@ -74,7 +74,7 @@ export const Wallet: React.FC = () => {
   const fetchTransactions = async () => {
     setIsLoadingTransactions(true);
     try {
-      const res = await api.get<TransaccionLedgerDto[]>('/wallet/transactions');
+      const res = await walletService.getTransactions();
       if (Array.isArray(res.data)) {
         setTransactions(res.data);
       }
@@ -107,9 +107,7 @@ export const Wallet: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await api.post<WalletResponseDto>('/wallet/deposit', {
-        amount: amountNum,
-      });
+      const response = await walletService.deposit(amountNum);
 
       // Actualizar directamente el estado balance con la respuesta del backend
       setBalance({
