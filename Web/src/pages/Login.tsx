@@ -12,6 +12,7 @@ const TEST_ACCOUNTS = [
   { label: 'Comprador 1', email: 'comprador1@test.com', password: '123456', detail: '$150.000 de saldo' },
   { label: 'Comprador 2', email: 'comprador2@test.com', password: '123456', detail: '$200.000 de saldo' },
   { label: 'Sin Fondos', email: 'sinfondos@test.com', password: '123456', detail: 'Saldo insuficiente ($500)' },
+  { label: 'Auditor', email: 'auditoria@test.com', password: '123456', detail: 'Registro de actividades y logs' },
 ];
 
 export const Login: React.FC = () => {
@@ -262,7 +263,7 @@ export const Login: React.FC = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {TEST_ACCOUNTS.map((acc) => (
+                  {TEST_ACCOUNTS.map((acc, index) => (
                     <button
                       key={acc.email}
                       type="button"
@@ -272,14 +273,23 @@ export const Login: React.FC = () => {
                         setErrorMessage(null);
                       }}
                       className={`p-2 rounded-lg border text-left transition-all cursor-pointer ${
+                        index === 4 ? 'col-span-2' : ''
+                      } ${
                         email === acc.email
                           ? 'border-brand-action bg-blue-50/80 ring-1 ring-brand-action/30'
                           : 'border-slate-200 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300'
                       }`}
                     >
-                      <span className="block text-xs font-bold text-slate-800">
-                        {acc.label}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="block text-xs font-bold text-slate-800">
+                          {acc.label}
+                        </span>
+                        {acc.label === 'Auditor' && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                            Rol Exclusivo
+                          </span>
+                        )}
+                      </div>
                       <span className="block text-[10px] text-slate-500 truncate">
                         {acc.detail}
                       </span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   RefreshCw,
   Clock,
@@ -19,6 +19,19 @@ export interface AuditLogItem {
   usuarioId?: number | null;
   fechaEvento: string;
 }
+
+const ACCIONES_SISTEMA: { value: string; label: string }[] = [
+  { value: 'ACTIVACION_WORKER', label: 'ACTIVACION_WORKER (Inicio automático)' },
+  { value: 'CIERRE_WORKER_VENTA', label: 'CIERRE_WORKER_VENTA (Adjudicación)' },
+  { value: 'CIERRE_WORKER_DESIERTA', label: 'CIERRE_WORKER_DESIERTA (Desierta)' },
+  { value: 'ACREDITACION_SALDO', label: 'ACREDITACION_SALDO (Depósito)' },
+  { value: 'EXTENSION_TIEMPO', label: 'EXTENSION_TIEMPO (Regla anti-sniping)' },
+  { value: 'INTENTO_OFERTA_FALLIDO_SALDO', label: 'INTENTO_OFERTA_FALLIDO_SALDO (Saldo insuficiente)' },
+  { value: 'INTENTO_OFERTA_FALLIDO_AUTOOFERTA', label: 'INTENTO_OFERTA_FALLIDO_AUTOOFERTA (Auto-puja)' },
+  { value: 'INTENTO_OFERTA_FALLIDO_VENDEDOR', label: 'INTENTO_OFERTA_FALLIDO_VENDEDOR (Puja de vendedor)' },
+  { value: 'INTENTO_OFERTA_FALLIDO_CONCURRENCIA', label: 'INTENTO_OFERTA_FALLIDO_CONCURRENCIA (Concurrencia)' },
+  { value: 'BLOQUEO_ACCION_AUDITOR', label: 'BLOQUEO_ACCION_AUDITOR (Acción restringida)' },
+];
 
 export const AuditLogsSection: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
@@ -107,6 +120,40 @@ export const AuditLogsSection: React.FC = () => {
     }
   };
 
+  const getActionBadgeColor = (accion: string) => {
+    if (accion.includes('FALLIDO') || accion.includes('BLOQUEO')) {
+      return 'bg-rose-50 text-rose-700 border-rose-200';
+    }
+    if (accion.includes('VENTA') || accion.includes('ACREDITACION')) {
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    }
+    if (accion.includes('DESIERTA')) {
+      return 'bg-amber-50 text-amber-800 border-amber-200';
+    }
+    if (accion.includes('EXTENSION') || accion.includes('WORKER')) {
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    }
+    return 'bg-slate-100 text-slate-800 border-slate-200';
+  };
+
+  const accionesDisponibles = useMemo(() => {
+    const knownValues = new Set(ACCIONES_SISTEMA.map((a) => a.value));
+    const dynamicAcciones = logs
+      .map((l) => l.accion)
+      .filter((a): a is string => Boolean(a) && !knownValues.has(a));
+
+    return [
+      ...ACCIONES_SISTEMA,
+      ...Array.from(new Set(dynamicAcciones)).map((a) => ({ value: a, label: a })),
+    ];
+  }, [logs]);
+
+  const entidadesDisponibles = useMemo(() => {
+    const defaultEntidades = ['SUBASTA', 'Billetera', 'Oferta', 'Sistema'];
+    const fromLogs = logs.map((l) => l.entidadAfectada).filter((e): e is string => Boolean(e));
+    return Array.from(new Set([...defaultEntidades, ...fromLogs]));
+  }, [logs]);
+
   return (
     <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm overflow-hidden font-sans">
       {/* Barra de Filtros y Actualización */}
@@ -126,10 +173,11 @@ export const AuditLogsSection: React.FC = () => {
               className="text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-action text-slate-700 font-sans cursor-pointer"
             >
               <option value="">Todas las entidades</option>
-              <option value="Billetera">Billetera</option>
-              <option value="Subasta">Subasta</option>
-              <option value="Oferta">Oferta</option>
-              <option value="Sistema">Sistema</option>
+              {entidadesDisponibles.map((ent) => (
+                <option key={ent} value={ent}>
+                  {ent}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -147,12 +195,11 @@ export const AuditLogsSection: React.FC = () => {
               className="text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-action text-slate-700 font-sans cursor-pointer"
             >
               <option value="">Todas las acciones</option>
-              <option value="ACREDITACION_SALDO">ACREDITACION_SALDO</option>
-              <option value="CrearOferta">CrearOferta</option>
-              <option value="LIQUIDACION_SUBASTA">LIQUIDACION_SUBASTA</option>
-              <option value="ACTIVACION_WORKER">ACTIVACION_WORKER</option>
-              <option value="INTENTO_OFERTA_FALLIDO_VENDEDOR">INTENTO_OFERTA_FALLIDO_VENDEDOR</option>
-              <option value="BLOQUEO_ACCION_AUDITOR">BLOQUEO_ACCION_AUDITOR</option>
+              {accionesDisponibles.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -239,7 +286,11 @@ export const AuditLogsSection: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap font-sans">
-                      <span className="inline-block font-semibold text-xs text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 font-sans">
+                      <span
+                        className={`inline-block font-semibold text-xs px-2.5 py-1 rounded-md border font-sans ${getActionBadgeColor(
+                          log.accion
+                        )}`}
+                      >
                         {log.accion}
                       </span>
                     </td>

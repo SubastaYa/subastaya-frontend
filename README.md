@@ -132,7 +132,7 @@ subastaya-frontend/
 
 ### 7. Inicio de Sesión y Acceso Rápido (`Login.tsx`)
 * Autenticación basada en tokens JWT con persistencia de sesión segura.
-* **Botonera de acceso rápido (1 clic)**: Permite seleccionar instantáneamente cualquiera de las cuentas de prueba precargadas (Vendedor, Comprador 1, Comprador 2, Sin fondos) completando email y contraseña de forma automática para facilitar demostraciones y evaluaciones docentes.
+* **Botonera de acceso rápido (1 clic)**: Permite seleccionar instantáneamente cualquiera de las cuentas de prueba precargadas (Vendedor, Comprador 1, Comprador 2, Sin fondos y Auditor) completando email y contraseña de forma automática para facilitar demostraciones y evaluaciones docentes.
 * Conmutación ágil entre vista de inicio de sesión y registro de nuevas cuentas de usuario.
 * Validación en tiempo real de credenciales y redirección automática al destino previo tras autenticarse.
 
@@ -204,6 +204,7 @@ Para probar todos los flujos de la aplicación de forma inmediata sin necesidad 
 | **Comprador 1** | `comprador1@test.com` | `123456` | Comprador habilitado ($150.000 de saldo). Postor activo en subastas de prueba. |
 | **Comprador 2** | `comprador2@test.com` | `123456` | Comprador habilitado ($200.000 de saldo). Ideal para simular competencia de pujas. |
 | **Sin Fondos** | `sinfondos@test.com` | `123456` | Comprador con solo $500. Permite comprobar alertas de saldo insuficiente. |
+| **Auditor** | `auditoria@test.com` | `123456` | Perfil exclusivo de auditoría. Acceso completo a logs y eventos del sistema. |
 
 > **Tip**: En la pantalla de [Inicio de Sesión](http://localhost:5173/login), puedes hacer clic directamente en cualquiera de los botones de acceso rápido para autocompletar las credenciales al instante.
 
