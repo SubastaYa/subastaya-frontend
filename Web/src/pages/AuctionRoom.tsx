@@ -508,8 +508,8 @@ export const AuctionRoom: React.FC = () => {
       case 3:
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700 border border-slate-300 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-white"></span>
             Finalizada
           </span>
         );
@@ -771,13 +771,20 @@ export const AuctionRoom: React.FC = () => {
         {/* ================= COLUMNA IZQUIERDA: PRODUCTO Y FICHA TÉCNICA ================= */}
         <div className="lg:col-span-7 space-y-6">
           {/* Imagen Principal del Producto */}
-          <div className="relative w-full h-80 sm:h-96 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+          <div className="relative w-full h-80 sm:h-96 bg-slate-600 rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
             <img
-              src={auction.urlImagen || '/images/default-subasta.jpg'}
+              src={
+                auction.estado === 2 || auction.estado === 3 || isFinalized
+                  ? '/images/subasta-finalizada.svg'
+                  : (auction.urlImagen || '/images/default-subasta.jpg')
+              }
               alt={auction.titulo}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
+                (e.target as HTMLImageElement).src =
+                  auction.estado === 2 || auction.estado === 3 || isFinalized
+                    ? '/images/subasta-finalizada.svg'
+                    : '/images/default-subasta.jpg';
               }}
             />
             {/* Categoría flotante sobre la imagen */}

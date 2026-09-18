@@ -62,9 +62,19 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
     return () => clearInterval(interval);
   }, [auction.fechaFin, auction.estado]);
 
+  const isFinalizada = auction.estado === 2 || auction.estado === 3 || countdown === 'Finalizada';
+
   // Función para determinar el badge según el estado
-  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada / 3=Desierta (Gris)
+  // 0=Programada (Azul), 1=Activa (Verde), 2=Finalizada / 3=Desierta (Rojo con letras blancas)
   const renderEstadoBadge = () => {
+    if (isFinalizada) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
+          Finalizada
+        </span>
+      );
+    }
+
     switch (auction.estado) {
       case 1:
         return (
@@ -78,11 +88,9 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
             Programada
           </span>
         );
-      case 2:
-      case 3:
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-600/90 text-white backdrop-blur-sm shadow-sm">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
             Finalizada
           </span>
         );
@@ -105,13 +113,13 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   return (
     <div className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 overflow-hidden flex flex-col justify-between group font-sans">
       {/* Imagen Superior con Badge de Estado */}
-      <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
+      <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
         <img
-          src={auction.urlImagen || '/images/default-subasta.jpg'}
+          src={isFinalizada ? '/images/subasta-finalizada.svg' : (auction.urlImagen || '/images/default-subasta.jpg')}
           alt={auction.titulo}
           className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
+            (e.target as HTMLImageElement).src = isFinalizada ? '/images/subasta-finalizada.svg' : '/images/default-subasta.jpg';
           }}
         />
         <div className="absolute top-3 right-3">

@@ -125,14 +125,14 @@ export const MyActivities: React.FC = () => {
         );
       case 3:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500 text-white shadow-sm">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
             Desierta
           </span>
         );
       case 2:
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-700 text-white shadow-sm">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm">
             Finalizada
           </span>
         );
@@ -292,13 +292,20 @@ export const MyActivities: React.FC = () => {
               className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
             >
               {/* Imagen con Badge de Estado */}
-              <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
+              <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
                 <img
-                  src={item.urlImagen || '/images/default-subasta.jpg'}
+                  src={
+                    item.estado === 2 || item.estado === 3
+                      ? '/images/subasta-finalizada.svg'
+                      : (item.urlImagen || '/images/default-subasta.jpg')
+                  }
                   alt={item.titulo}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
+                    (e.target as HTMLImageElement).src =
+                      item.estado === 2 || item.estado === 3
+                        ? '/images/subasta-finalizada.svg'
+                        : '/images/default-subasta.jpg';
                   }}
                 />
                 <div className="absolute top-3 right-3">
@@ -391,13 +398,20 @@ export const MyActivities: React.FC = () => {
                 className="bg-brand-surface rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
               >
                 {/* Imagen con Badge de Estado */}
-                <div className="relative w-full h-52 bg-slate-100 overflow-hidden shrink-0">
+                <div className="relative w-full h-52 bg-slate-600 overflow-hidden shrink-0">
                   <img
-                    src={pub.urlImagen || '/images/default-subasta.jpg'}
+                    src={
+                      pub.estado === 2 || pub.estado === 3
+                        ? '/images/subasta-finalizada.svg'
+                        : (pub.urlImagen || '/images/default-subasta.jpg')
+                    }
                     alt={pub.titulo}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/default-subasta.jpg';
+                      (e.target as HTMLImageElement).src =
+                        pub.estado === 2 || pub.estado === 3
+                          ? '/images/subasta-finalizada.svg'
+                          : '/images/default-subasta.jpg';
                     }}
                   />
                   <div className="absolute top-3 right-3">
