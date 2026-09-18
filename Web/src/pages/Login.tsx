@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-do
 import { useAuth } from '../context/useAuth';
 import { Lock, Mail, AlertCircle, ArrowRight, ArrowLeft, User, CheckCircle2, KeyRound } from 'lucide-react';
 import axios from 'axios';
+import api from '../api/axios';
 
 type LoginView = 'login' | 'register' | 'reset';
 
@@ -91,14 +92,28 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulación o llamada al endpoint de registro
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await api.post('/auth/register', {
+        email: email.trim(),
+        nombre: nombre.trim(),
+        password,
+      });
       setSuccessMessage('¡Cuenta creada exitosamente! Ya puedes ingresar con tu correo y contraseña.');
       setView('login');
       setPassword('');
       setConfirmPassword('');
-    } catch {
-      setErrorMessage('No fue posible completar el registro. Intente nuevamente.');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
+        if (err.response?.status === 409) {
+          setErrorMessage(detail || 'El correo electrónico ya está en uso.');
+        } else if (err.response?.status === 400) {
+          setErrorMessage(detail || 'Los datos ingresados no son válidos.');
+        } else {
+          setErrorMessage('No fue posible completar el registro. Intente nuevamente.');
+        }
+      } else {
+        setErrorMessage('No fue posible completar el registro. Intente nuevamente.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -265,11 +280,6 @@ export const Login: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <img
-                      src="/mustache_beige.png?v=4"
-                      alt="Bigote"
-                      className="h-4 w-auto object-contain brightness-0 invert"
-                    />
                     <span>Ingresa a Subastas Ya!</span>
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </>

@@ -9,7 +9,6 @@ import {
   AlertCircle,
   TrendingUp,
   UserCheck,
-  Award,
   DollarSign,
   Send,
   ShieldCheck,
@@ -887,12 +886,16 @@ export const AuctionRoom: React.FC = () => {
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${esLider
-                                ? 'bg-emerald-600 text-white shadow-sm'
-                                : 'bg-slate-100 text-slate-600'
+                            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 p-1.5 ${esLider
+                                ? 'bg-emerald-600 shadow-sm ring-2 ring-emerald-200'
+                                : 'bg-slate-100 border border-slate-200'
                               }`}
                           >
-                            {esLider ? <Award className="w-4 h-4" /> : <Gavel className="w-4 h-4" />}
+                            <img
+                              src="/bow_tie.png?v=1"
+                              alt="Moño"
+                              className="w-5.5 h-auto object-contain"
+                            />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
