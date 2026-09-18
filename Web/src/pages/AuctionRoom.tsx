@@ -11,7 +11,6 @@ import {
   UserCheck,
   Award,
   DollarSign,
-  Hourglass,
   Send,
   ShieldCheck,
   AlertTriangle,
@@ -19,7 +18,8 @@ import {
   Plus,
   CheckCircle,
   LogIn,
-  Loader2
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { HubConnectionBuilder, HubConnection, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import axios from 'axios';
@@ -70,7 +70,10 @@ export const AuctionRoom: React.FC = () => {
   const [auction, setAuction] = useState<SubastaDetalleDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [tiempoRestante, setTiempoRestante] = useState<string>('');
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isCriticalZone, setIsCriticalZone] = useState<boolean>(false);
+  const [showAntiSnipingAlert, setShowAntiSnipingAlert] = useState<boolean>(false);
+  const [isFinalized, setIsFinalized] = useState<boolean>(false);
   const [miUltimaOferta, setMiUltimaOferta] = useState<number | null>(null);
   const [offerAmount, setOfferAmount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -80,19 +83,28 @@ export const AuctionRoom: React.FC = () => {
     message: string;
   } | null>(null);
 
-  // Contador regresivo en tiempo real vinculado a la fecha de cierre de la subasta
+  // Contador regresivo en tiempo real segundo a segundo con detección de zona crítica y finalización
   useEffect(() => {
     if (!auction?.fechaFin) return;
 
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     const actualizarContador = () => {
-      const ahora = new Date().getTime();
+      const ahora = Date.now();
       const fin = new Date(auction.fechaFin).getTime();
       const diferencia = fin - ahora;
 
       if (diferencia <= 0) {
-        setTiempoRestante('Finalizada');
+        setTimeLeft('00:00:00');
+        setIsCriticalZone(false);
+        setIsFinalized(true);
+        if (intervalId) clearInterval(intervalId);
         return;
       }
+
+      setIsFinalized(false);
+      // Zona crítica: restan 60 segundos o menos
+      setIsCriticalZone(diferencia <= 60000);
 
       const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
       const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -102,16 +114,18 @@ export const AuctionRoom: React.FC = () => {
       const pad = (n: number) => n.toString().padStart(2, '0');
 
       if (dias > 0) {
-        setTiempoRestante(`${dias}d ${pad(horas)}h ${pad(minutos)}m ${pad(segundos)}s`);
+        setTimeLeft(`${dias}d ${pad(horas)}:${pad(minutos)}:${pad(segundos)}`);
       } else {
-        setTiempoRestante(`${pad(horas)}h ${pad(minutos)}m ${pad(segundos)}s`);
+        setTimeLeft(`${pad(horas)}:${pad(minutos)}:${pad(segundos)}`);
       }
     };
 
     actualizarContador();
-    const interval = setInterval(actualizarContador, 1000);
+    intervalId = setInterval(actualizarContador, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [auction?.fechaFin]);
 
   useEffect(() => {
@@ -213,7 +227,7 @@ export const AuctionRoom: React.FC = () => {
       });
     };
 
-    // Manejador del evento TimeExtended
+    // Manejador del evento TimeExtended (Regla Anti-Sniping)
     const handleTimeExtended = (data: TimeExtendedPayload) => {
       console.log('SignalR TimeExtended recibido:', data);
       setAuction((prev) => {
@@ -223,6 +237,10 @@ export const AuctionRoom: React.FC = () => {
           fechaFin: data.newEndTime,
         };
       });
+      setShowAntiSnipingAlert(true);
+      setTimeout(() => {
+        setShowAntiSnipingAlert(false);
+      }, 5000);
     };
 
     // Suscripción a eventos del servidor
@@ -304,7 +322,7 @@ export const AuctionRoom: React.FC = () => {
 
   // Enviar oferta al backend
   const handleSubmitOffer = async () => {
-    if (!auction || !isAuthenticated || isSubmitting) return;
+    if (!auction || !isAuthenticated || isSubmitting || isFinalized || auction.estado !== 1) return;
 
     const minRequerido = auction.precioActual + auction.incrementoMinimo;
     if (offerAmount < minRequerido) {
@@ -473,7 +491,7 @@ export const AuctionRoom: React.FC = () => {
   const precioLider = tieneOfertas ? auction.precioActual : auction.precioBase;
   const esLider = miUltimaOferta !== null && auction.precioActual === miUltimaOferta;
   const fueSuperado = miUltimaOferta !== null && auction.precioActual > miUltimaOferta;
-  const subastaActiva = auction.estado === 1;
+  const subastaActiva = auction.estado === 1 && !isFinalized;
   const montoMinimo = auction.precioActual + auction.incrementoMinimo;
 
   return (
@@ -491,6 +509,23 @@ export const AuctionRoom: React.FC = () => {
           Sala de Subasta #{auction.id}
         </span>
       </div>
+
+      {/* Alerta Anti-Sniping Reactiva */}
+      {showAntiSnipingAlert && (
+        <div className="mb-6 flex items-center gap-3.5 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 shadow-sm transition-all duration-300 animate-pulse">
+          <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <Zap className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="font-bold text-sm text-amber-900 block">
+              ¡Regla Anti-Sniping activada!
+            </span>
+            <span className="text-xs text-amber-700 block">
+              El cierre se ha extendido 2 minutos adicionales.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Layout de dos columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -597,17 +632,30 @@ export const AuctionRoom: React.FC = () => {
                 Estado de la Subasta
               </span>
               <div className="flex items-center gap-2.5">
-                {renderEstadoBadge(auction.estado)}
+                {isFinalized || auction.estado === 2 || auction.estado === 3 ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700 border border-slate-300 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                    SUBASTA FINALIZADA
+                  </span>
+                ) : (
+                  <>
+                    {renderEstadoBadge(auction.estado)}
 
-                {/* Reloj de arena animado a la derecha de Activa, sin encapsular */}
-                {tiempoRestante && (
-                  <div
-                    title={`Fecha de cierre: ${formatDateTime(auction.fechaFin)}`}
-                    className="flex items-center gap-1.5 text-slate-600 font-mono text-xs font-semibold select-none"
-                  >
-                    <Hourglass className="w-3.5 h-3.5 text-slate-500 animate-[spin_3s_ease-in-out_infinite]" />
-                    <span>{tiempoRestante}</span>
-                  </div>
+                    {/* Temporizador digital en vivo con detección de zona crítica */}
+                    {timeLeft && (
+                      <div
+                        title={`Fecha de cierre: ${formatDateTime(auction.fechaFin)}`}
+                        className={`flex items-center gap-1.5 font-mono text-xs select-none px-2.5 py-1 rounded-lg border transition-all ${
+                          isCriticalZone
+                            ? 'text-red-600 font-extrabold animate-pulse bg-red-50 border-red-200 shadow-sm ring-1 ring-red-500/20'
+                            : 'text-slate-700 font-bold bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        <Clock className={`w-3.5 h-3.5 ${isCriticalZone ? 'text-red-600 animate-spin' : 'text-slate-500'}`} />
+                        <span>{timeLeft}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -798,7 +846,19 @@ export const AuctionRoom: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ) : null
+              ) : (
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-100 border border-slate-200">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 shrink-0">
+                      <Gavel className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-slate-800 block">Subasta Finalizada</span>
+                      <span className="text-xs text-slate-500">Esta subasta ha concluido y ya no acepta nuevas ofertas.</span>
+                    </div>
+                  </div>
+                </div>
+              )
             )}
 
             {/* Historial Cronológico de Ofertas */}
